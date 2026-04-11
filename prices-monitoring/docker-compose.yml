@@ -1,0 +1,39 @@
+services:
+  prices-monitoring:
+    build: .
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - prices-monitoring.db
+      - prices-monitoring.cache
+    ports:
+      - 3000:3000
+
+  prices-monitoring.db:
+    image: postgres:latest
+    restart: always
+    container_name: services.postgres
+    environment:
+      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: postgres
+    ports:
+      - 5433:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  prices-monitoring.cache:
+    image: redis:latest
+    environment:
+      - REDIS_PASSWORD=admin
+    ports:
+      - 6379:6379
+    command: >
+      redis-server
+      --requirepass admin
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
