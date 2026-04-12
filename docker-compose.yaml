@@ -9,6 +9,7 @@ services:
       - auth-nginx
       - alerts-nginx
       - products
+      - prices-monitoring
     networks:
       - app-network
 
@@ -166,6 +167,8 @@ services:
       - prices-monitoring.cache
     ports:
       - 3000:3000
+    networks:
+      - app-network
 
   prices-monitoring.db:
     image: postgres:16-alpine
