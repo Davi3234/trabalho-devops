@@ -2,11 +2,13 @@ services:
   api-gateway:
     image: nginx:alpine
     ports:
-      - "80:80"
+      - 80:80
     volumes:
       - ./api-gateway/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - auth-service
+      - auth-nginx
+      - alerts-nginx
+      - products
     networks:
       - app-network
 
@@ -23,11 +25,25 @@ services:
       - /var/www/vendor
     networks:
       - app-network
+    
+  auth-nginx:
+    image: nginx:alpine
+    ports:
+      - 5001:5001
+    volumes:
+      - ./auth-service:/var/www:ro
+      - ./api-gateway/auth.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - auth-service
+    networks:
+      - app-network
 
   alerts:
     build:
       context: ./alerts
       dockerfile: Dockerfile
+    env_file:
+      ./alerts/.env
     environment:
       APP_KEY: ${ALERTS_APP_KEY}
       JWT_SECRET: ${JWT_SECRET}
@@ -51,11 +67,57 @@ services:
     networks:
       - app-network
 
+  alerts-nginx:
+    image: nginx:alpine
+    ports:
+      - 5002:5002
+    volumes:
+      - ./alerts:/var/www:ro
+      - ./api-gateway/alerts.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - alerts
+    networks:
+      - app-network
+
+  products:
+    build:
+      context: ./product
+      target: development
+    environment:
+      DB_URL: jdbc:postgresql://db-products:5432/products
+      DB_USERNAME: ${POSTGRES_USER_PRODUCT}
+      DB_PASSWORD: ${POSTGRES_PASSWORD_PRODUCT}
+    ports:
+      - 8080:8080
+    depends_on:
+      db-products:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  db-products:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: products
+      POSTGRES_USER: ${POSTGRES_USER_PRODUCT}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_PRODUCT}
+    volumes:
+      - products_data:/var/lib/postgresql/data
+    ports:
+      - 5434:5434
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER_PRODUCT} -d products"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
   rabbitmq:
     image: rabbitmq:3-management-alpine
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - 5672:5672
+      - 15672:15672
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
@@ -93,10 +155,49 @@ services:
     networks:
       - app-network
 
+  prices-monitoring:
+    build: 
+      context: ./prices-monitoring
+    volumes:
+      - ./prices-monitoring:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - prices-monitoring.db
+      - prices-monitoring.cache
+    ports:
+      - 3000:3000
+
+  prices-monitoring.db:
+    image: postgres:16-alpine
+    restart: always
+    container_name: services.postgres
+    environment:
+      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: postgres
+    ports:
+      - 5433:5433
+    volumes:
+      - prices_data:/var/lib/postgresql/data
+
+  prices-monitoring.cache:
+    image: redis:latest
+    environment:
+      - REDIS_PASSWORD=admin
+    ports:
+      - 6379:6379
+    command: >
+      redis-server
+      --requirepass admin
+    volumes:
+      - redis_prices_data:/data
+
 volumes:
   rabbitmq_data:
   redis_auth_data:
   redis_alerts_data:
+  products_data:
+  prices_data:
+  redis_prices_data:
 
 networks:
   app-network:

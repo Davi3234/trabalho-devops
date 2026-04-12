@@ -22,7 +22,7 @@ RUN composer install --no-dev --optimize-autoloader
 
 COPY . .
 
-# Stage final
+# Stage development
 FROM php:8.3-fpm-alpine AS development
 
 RUN apk add --no-cache \
