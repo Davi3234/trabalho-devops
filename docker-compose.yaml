@@ -71,11 +71,10 @@ services:
       - app-network
 
   inventory-service:
-    build: 
+    build:
       context: ./inventory-service
-    volumes:
-      - ./inventory-service:/usr/src/app
-      - /usr/src/app/node_modules
+    env_file:
+      - ./inventory-service/.env
     depends_on:
       - db-inventory
     ports:
