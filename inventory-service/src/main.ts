@@ -5,10 +5,10 @@ import { env } from '@shared/env'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    logger: ['error', 'warn', 'fatal'],
+    logger: ['error', 'warn', 'fatal', 'log'],
   })
 
-  await app.listen(env.PORT)
+  await app.listen(env('PORT'))
 }
 
 bootstrap()

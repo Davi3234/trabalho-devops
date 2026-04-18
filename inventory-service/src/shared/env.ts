@@ -1,8 +1,8 @@
-import z from 'zod'
+export interface Environment {
+  ENVIRONMENT: 'PRODUCTION' | 'DEVELOPMENT' | 'TEST'
+  PORT: number
+}
 
-const schema = z.object({
-  ENVIRONMENT: z.string(),
-  PORT: z.coerce.number().default(8080),
-})
-
-export const env = schema.parse(process.env)
+export function env<T extends keyof Environment>(name: T, defaultValue?: Environment[T]) {
+  return (process.env[name] ?? defaultValue ?? null) as Environment[T]
+}

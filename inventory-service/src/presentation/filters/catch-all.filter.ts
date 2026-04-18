@@ -32,7 +32,7 @@ export class CatchAllExceptionFilter implements ExceptionFilter<Error> {
   }
 
   private static getResponseBody(exception: Error) {
-    if (env.ENVIRONMENT == 'PRODUCTION') {
+    if (env('ENVIRONMENT') == 'PRODUCTION') {
       if (exception instanceof CriticalException || (exception instanceof HttpException && exception.getStatus() >= 500)) {
         return { message: 'Internal Server Error. Try again later' }
       }
