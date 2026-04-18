@@ -1,5 +1,3 @@
-import { randomUUID } from 'node:crypto'
-
 import { ItemReserva } from '@domain/entities/item-reserva.entity'
 import { StatusReserva } from '@domain/enums/status-reserva.enum'
 import { PedidoId } from '@domain/value-objects/pedido-id.vo'
@@ -8,7 +6,7 @@ import { BusinessException } from '@shared/exceptions/business.exception'
 export const RESERVA_TIMEOUT_MINUTOS = 15
 
 export interface ReservaProps {
-  id: string
+  id: number
   pedidoId: PedidoId
   itens: ItemReserva[]
   status: StatusReserva
@@ -44,7 +42,7 @@ export class Reserva {
     const expiradoEm = new Date(now.getTime() + RESERVA_TIMEOUT_MINUTOS * 60 * 1000)
 
     return new Reserva({
-      id: randomUUID(),
+      id: Date.now(),
       pedidoId,
       itens,
       status: StatusReserva.PENDENTE,

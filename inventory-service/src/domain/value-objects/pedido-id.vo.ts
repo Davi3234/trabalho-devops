@@ -1,27 +1,17 @@
-import { randomUUID } from 'node:crypto'
-
-import { BusinessException } from '@shared/exceptions/business.exception'
-
 export class PedidoId {
 
-  private readonly _id: string
+  private readonly _id: number
 
   get id() {
     return this._id
   }
 
-  private constructor(pedidoId: string) {
+  private constructor(pedidoId: number) {
     this._id = pedidoId
   }
 
-  static create(pedidoId?: string) {
-    const id = pedidoId ?? randomUUID()
-
-    if (!id || id.trim().length === 0) {
-      throw new BusinessException('Id do Pedido não pode ser vazio')
-    }
-
-    return new PedidoId(id)
+  static create(pedidoId: number) {
+    return new PedidoId(pedidoId)
   }
 
   equals(other: PedidoId) {
