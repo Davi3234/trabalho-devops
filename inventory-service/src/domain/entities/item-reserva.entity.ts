@@ -1,8 +1,7 @@
 import { EstoqueProduto } from '@domain/value-objects/estoque-produto.vo'
-import { ProdutoId } from '@domain/value-objects/produto-id.vo'
 
 export interface ItemReservaProps {
-  produtoId: ProdutoId
+  produtoId: number
   quantidade: EstoqueProduto
 }
 
@@ -18,7 +17,7 @@ export class ItemReserva {
     this.props = props
   }
 
-  static create(props: { produtoId: ProdutoId; quantidade: EstoqueProduto }) {
+  static create(props: { produtoId: number; quantidade: EstoqueProduto }) {
     if (props.quantidade.isEmpty()) {
       throw new Error('Quantidade do item de reserva deve ser maior que zero')
     }

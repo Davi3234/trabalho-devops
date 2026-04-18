@@ -1,11 +1,10 @@
 import { EstoqueProduto } from '@domain/value-objects/estoque-produto.vo'
-import { ProdutoId } from '@domain/value-objects/produto-id.vo'
 import { BusinessException } from '@shared/exceptions/business.exception'
 
 export const NIVEL_CRITICO_THRESHOLD = 5
 
 export interface ProdutoProps {
-  id: ProdutoId
+  id: number
   nome: string
   quantidadeTotal: EstoqueProduto
   quantidadeReservada: EstoqueProduto
@@ -15,7 +14,7 @@ export interface ProdutoProps {
 }
 
 export interface ProdutoCreateArgs {
-  id?: ProdutoId
+  id?: number
   nome: string
   quantidadeTotal: EstoqueProduto
   version?: number
@@ -43,7 +42,7 @@ export class Produto {
 
   static create(args: ProdutoCreateArgs) {
     return new Produto({
-      id: args.id ?? ProdutoId.create(),
+      id: args.id ?? Date.now(),
       nome: args.nome,
       quantidadeTotal: args.quantidadeTotal,
       quantidadeReservada: EstoqueProduto.zero(),
@@ -68,7 +67,7 @@ export class Produto {
   reservar(quantidade: EstoqueProduto) {
     if (!this.hasDisponivel(quantidade)) {
       throw new BusinessException(
-        `Estoque insuficiente para produto ${this.props.id.id}. ` +
+        `Estoque insuficiente para produto ${this.props.id}. ` +
         `Disponível: ${this.quantidadeDisponivel.quantidade}, solicitado: ${quantidade.quantidade}`,
       )
     }
