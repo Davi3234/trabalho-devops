@@ -8,7 +8,7 @@ async function bootstrap() {
     logger: ['error', 'warn', 'fatal', 'log'],
   })
 
-  await app.listen(env('PORT'))
+  await app.listen(env('PORT', 3000))
 }
 
 bootstrap()
