@@ -1,0 +1,24 @@
+{
+  "rabbit_version": "3.12",
+  "vhosts": [
+    { "name": "/" }
+  ],
+  "exchanges": [
+    { "name": "order.events", "vhost": "/", "type": "topic", "durable": true, "auto_delete": false },
+    { "name": "estoque.events", "vhost": "/", "type": "topic", "durable": true, "auto_delete": false },
+    { "name": "pagamento.events", "vhost": "/", "type": "topic", "durable": true, "auto_delete": false },
+    { "name": "entrega.events", "vhost": "/", "type": "topic", "durable": true, "auto_delete": false }
+  ],
+  "queues": [
+    { "name": "order.estoque.reserva_falhou", "vhost": "/", "durable": true, "auto_delete": false },
+    { "name": "order.pagamento.recusado", "vhost": "/", "durable": true, "auto_delete": false },
+    { "name": "order.pagamento.confirmado", "vhost": "/", "durable": true, "auto_delete": false },
+    { "name": "order.entrega.despachada", "vhost": "/", "durable": true, "auto_delete": false }
+  ],
+  "bindings": [
+    { "source": "estoque.events", "vhost": "/", "destination": "order.estoque.reserva_falhou", "destination_type": "queue", "routing_key": "estoque.reserva_falhou" },
+    { "source": "pagamento.events", "vhost": "/", "destination": "order.pagamento.recusado", "destination_type": "queue", "routing_key": "pagamento.recusado" },
+    { "source": "pagamento.events", "vhost": "/", "destination": "order.pagamento.confirmado", "destination_type": "queue", "routing_key": "pagamento.confirmado" },
+    { "source": "entrega.events", "vhost": "/", "destination": "order.entrega.despachada", "destination_type": "queue", "routing_key": "entrega.despachada" }
+  ]
+}
