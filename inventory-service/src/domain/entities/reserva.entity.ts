@@ -1,5 +1,7 @@
 import { ItemReserva } from '@domain/entities/item-reserva.entity'
 import { StatusReserva } from '@domain/enums/status-reserva.enum'
+import { ReservaState } from '@domain/state/reserva-status/reserva-status'
+import { ReservaStatusFabric } from '@domain/state/reserva-status/reserva-status-fabric'
 import { PedidoId } from '@domain/value-objects/pedido-id.vo'
 import { BusinessException } from '@shared/exceptions/business.exception'
 
@@ -18,6 +20,7 @@ export interface ReservaProps {
 export class Reserva {
 
   private readonly props: ReservaProps
+  private state: ReservaState
 
   get id() { return this.props.id }
   get pedidoId() { return this.props.pedidoId }
@@ -31,6 +34,7 @@ export class Reserva {
 
   private constructor(props: ReservaProps) {
     this.props = props
+    this.state = ReservaStatusFabric.create(props.status)
   }
 
   static criar(pedidoId: PedidoId, itens: ItemReserva[]) {
@@ -57,41 +61,28 @@ export class Reserva {
   }
 
   isAtiva() {
-    return this.props.status === StatusReserva.PENDENTE
+    return this.state.status === StatusReserva.PENDENTE
   }
 
   isExpirada() {
-    return this.props.status === StatusReserva.PENDENTE && new Date() > this.props.expiradoEm
+    return this.state.status === StatusReserva.PENDENTE && new Date() > this.props.expiradoEm
   }
 
   confirmar() {
-    if (this.props.status !== StatusReserva.PENDENTE) {
-      throw new Error(`Reserva não pode ser confirmada no status '${this.props.status}'`)
-    }
-
-    this.props.status = StatusReserva.CONFIRMADO
-    this.props.atualizadoEm = new Date()
+    this.state.confirmar(this)
   }
 
   estornar() {
-    if (this.props.status === StatusReserva.ESTORNADO) {
-      throw new Error('Reserva já foi estornada')
-    }
-
-    if (this.props.status === StatusReserva.CONFIRMADO) {
-      throw new Error('Reserva confirmada não pode ser estornada diretamente')
-    }
-
-    this.props.status = StatusReserva.ESTORNADO
-    this.props.atualizadoEm = new Date()
+    this.state.estornar(this)
   }
 
   expirar() {
-    if (this.props.status !== StatusReserva.PENDENTE) {
-      throw new Error(`Reserva não pode ser expirada no status '${this.props.status}'`)
-    }
+    this.state.expirar(this)
+  }
 
-    this.props.status = StatusReserva.EXPIRADO
+  setStatus(status: StatusReserva) {
+    this.props.status = status
     this.props.atualizadoEm = new Date()
+    this.state = ReservaStatusFabric.create(status)
   }
 }
