@@ -6,5 +6,5 @@ export interface IReservaRepository {
   findExpiradas(): Promise<Reserva[]>
 
   save(reserva: Reserva): Promise<void>
-  existePorPedidoId(pedidoId: PedidoId): Promise<boolean>
+  isPedidoReservado(pedidoId: PedidoId): Promise<boolean>
 }
