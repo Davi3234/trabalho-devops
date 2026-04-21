@@ -289,7 +289,7 @@ export type ProdutoScalarWhereWithAggregatesInput = {
 }
 
 export type ProdutoCreateInput = {
-  quantidadeTotal: number
+  quantidadeTotal?: number
   quantidadeReservada?: number
   version?: number
   criadoEm?: Date | string
@@ -299,7 +299,7 @@ export type ProdutoCreateInput = {
 
 export type ProdutoUncheckedCreateInput = {
   id?: number
-  quantidadeTotal: number
+  quantidadeTotal?: number
   quantidadeReservada?: number
   version?: number
   criadoEm?: Date | string
@@ -328,7 +328,7 @@ export type ProdutoUncheckedUpdateInput = {
 
 export type ProdutoCreateManyInput = {
   id?: number
-  quantidadeTotal: number
+  quantidadeTotal?: number
   quantidadeReservada?: number
   version?: number
   criadoEm?: Date | string
@@ -425,7 +425,7 @@ export type ProdutoUpdateOneRequiredWithoutItensReservaNestedInput = {
 }
 
 export type ProdutoCreateWithoutItensReservaInput = {
-  quantidadeTotal: number
+  quantidadeTotal?: number
   quantidadeReservada?: number
   version?: number
   criadoEm?: Date | string
@@ -434,7 +434,7 @@ export type ProdutoCreateWithoutItensReservaInput = {
 
 export type ProdutoUncheckedCreateWithoutItensReservaInput = {
   id?: number
-  quantidadeTotal: number
+  quantidadeTotal?: number
   quantidadeReservada?: number
   version?: number
   criadoEm?: Date | string
@@ -1216,7 +1216,7 @@ export type ProdutoCreateArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   /**
    * The data needed to create a Produto.
    */
-  data: Prisma.XOR<Prisma.ProdutoCreateInput, Prisma.ProdutoUncheckedCreateInput>
+  data?: Prisma.XOR<Prisma.ProdutoCreateInput, Prisma.ProdutoUncheckedCreateInput>
 }
 
 /**
