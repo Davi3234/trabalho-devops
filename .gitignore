@@ -1,2 +1,6 @@
-.env*
+# Env files
+.env
 !.env.exemple
+
+# IDE
+.idea*

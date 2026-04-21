@@ -16,6 +16,15 @@
 $router->get('/', function () use ($router) {
     return $router->app->version();
 });
-$router->get('/hello-word', function() use($router){
-    return 'Hello world';
+
+$router->group(['namespace' => '\App\Interfaces\Http\Controller'], function () use ($router) {
+    $router->post('/login', 'AuthController@login');
+    $router->post('/register', 'AuthController@register');
+    $router->get('/validate-token', 'AuthController@validateToken');
 });
+
+// Rota protegida
+$router->group(['middleware' => 'auth'], function () use ($router) {
+    $router->get('/profile', 'UserController@profile');
+});
+
