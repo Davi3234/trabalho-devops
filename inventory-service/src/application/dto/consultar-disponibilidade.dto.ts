@@ -16,7 +16,7 @@ export interface DisponibilidadeItem {
   quantidadeDisponivel: number
   quantidadeTotal: number
   quantidadeReservada: number
-  emNivelCritico: boolean
+  isNivelCritico: boolean
 }
 
 export interface ConsultarDisponibilidadeOutput {

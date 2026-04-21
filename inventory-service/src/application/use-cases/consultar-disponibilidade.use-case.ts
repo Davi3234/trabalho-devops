@@ -32,7 +32,7 @@ export class ConsultarDisponibilidadeUseCase {
           quantidadeDisponivel: 0,
           quantidadeTotal: 0,
           quantidadeReservada: 0,
-          emNivelCritico: true,
+          isNivelCritico: true,
         }
       }
 
@@ -41,7 +41,7 @@ export class ConsultarDisponibilidadeUseCase {
         quantidadeDisponivel: produto.quantidadeDisponivel.quantidade,
         quantidadeTotal: produto.quantidadeTotal.quantidade,
         quantidadeReservada: produto.quantidadeReservada.quantidade,
-        emNivelCritico: produto.isNivelCritico(),
+        isNivelCritico: produto.isNivelCritico(),
       }
     })
 
