@@ -5,7 +5,8 @@ export const consultarDisponibilidadeSchema = z.object({
     z.number({ error: 'Id do Pedido Inválido' })
       .positive('Id do Pedido Inválido')
   )
-    .max(100),
+    .max(100)
+    .default([]),
 })
   .default({} as any)
 

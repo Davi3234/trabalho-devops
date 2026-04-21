@@ -13,7 +13,8 @@ export const reservarItensSchema = z.object({
     })
       .default({} as any),
   )
-    .min(1),
+    .min(1)
+    .default([]),
 })
 
 export type ReservarItensInput = z.infer<typeof reservarItensSchema>
