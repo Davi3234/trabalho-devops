@@ -30,7 +30,7 @@ export class RedisCacheService {
   }
 
   async set<T>(key: string, value: T, ttlSeconds: number) {
-    const result = await this.redis.set(`${CACHE_PREFIX}${key}`, JSON.stringify(value), 'EX', ttlSeconds)
+    const result = await this.redis.set(`${CACHE_PREFIX}${key}`, JSON.stringify(value), 'PX', ttlSeconds, 'NX')
 
     return result === 'OK'
   }
