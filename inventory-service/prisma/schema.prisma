@@ -1,0 +1,54 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/infrastructure/generated"
+}
+
+model Produto {
+  id                  Int      @id
+  quantidadeTotal     Int      @default(0) @map("quantidade_total")
+  quantidadeReservada Int      @default(0) @map("quantidade_reservada")
+  version             Int      @default(0)
+  criadoEm            DateTime @default(now()) @map("criado_em")
+  atualizadoEm        DateTime @default(now()) @updatedAt @map("atualizado_em")
+
+  itensReserva ItemReserva[]
+
+  @@map("produtos")
+}
+
+model Reserva {
+  id           Int           @id @default(autoincrement())
+  pedidoId     Int           @unique @map("pedido_id")
+  status       StatusReserva @default(pendente)
+  criadoEm     DateTime      @default(now()) @map("criado_em")
+  expiradoEm   DateTime      @map("expirado_em")
+  atualizadoEm DateTime      @default(now()) @updatedAt @map("atualizado_em")
+
+  itens ItemReserva[]
+
+  @@index([status, expiradoEm])
+  @@map("reservas")
+}
+
+model ItemReserva {
+  id         Int @id @default(autoincrement())
+  reservaId  Int @map("reserva_id")
+  produtoId  Int @map("produto_id")
+  quantidade Int
+
+  reserva Reserva @relation(fields: [reservaId], references: [id])
+  produto Produto @relation(fields: [produtoId], references: [id])
+
+  @@map("itens_reserva")
+}
+
+enum StatusReserva {
+  pendente
+  confirmada
+  estornada
+  expirada
+}
