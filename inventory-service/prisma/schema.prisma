@@ -9,7 +9,6 @@ generator client {
 
 model Produto {
   id                  Int      @id @default(autoincrement())
-  nome                String
   quantidadeTotal     Int      @map("quantidade_total")
   quantidadeReservada Int      @default(0) @map("quantidade_reservada")
   version             Int      @default(0)
