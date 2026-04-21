@@ -13,8 +13,8 @@ export interface ProdutoProps {
 }
 
 export interface ProdutoCreateArgs {
-  id?: number
-  quantidadeTotal: EstoqueProduto
+  id: number
+  quantidadeTotal?: EstoqueProduto
   version?: number
 }
 
@@ -39,8 +39,8 @@ export class Produto {
 
   static create(args: ProdutoCreateArgs) {
     return new Produto({
-      id: args.id ?? Date.now(),
-      quantidadeTotal: args.quantidadeTotal,
+      id: args.id,
+      quantidadeTotal: args.quantidadeTotal ?? EstoqueProduto.zero(),
       quantidadeReservada: EstoqueProduto.zero(),
       version: args.version ?? 0,
       criadoEm: new Date(),
