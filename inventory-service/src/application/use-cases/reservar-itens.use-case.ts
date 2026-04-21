@@ -16,13 +16,12 @@ import { EstoqueReservadoEvent } from '@domain/events/estoque-reservado.event'
 import { NivelCriticoEstoqueEvent } from '@domain/events/nivel-critico-estoque.event'
 import { ItemFalhouData, ReservaFalhouEvent } from '@domain/events/reserva-falhou.event'
 import type { IProdutoRepository } from '@domain/repositories/produto.repository'
+import { PRODUTO_REPO_TOKEN } from '@domain/repositories/produto.repository'
 import type { IReservaRepository } from '@domain/repositories/reserva.repository'
+import { RESERVA_REPO_TOKEN } from '@domain/repositories/reserva.repository'
 import { EstoqueProduto } from '@domain/value-objects/estoque-produto.vo'
 import { PedidoId } from '@domain/value-objects/pedido-id.vo'
 import { BusinessException } from '@shared/exceptions/business.exception'
-
-export const PRODUTO_REPO_TOKEN = 'IProdutoRepository'
-export const RESERVA_REPO_TOKEN = 'IReservaRepository'
 
 const LOCK_TTL_MS = 10_000
 

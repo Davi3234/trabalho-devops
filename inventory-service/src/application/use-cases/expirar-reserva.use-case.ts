@@ -2,10 +2,11 @@ import { Inject, Injectable, Logger } from '@nestjs/common'
 
 import type { IEventPublisher } from '@application/ports/event-publisher.port'
 import { EVENT_PUBLISHER_TOKEN } from '@application/ports/event-publisher.port'
-import { PRODUTO_REPO_TOKEN, RESERVA_REPO_TOKEN } from '@application/use-cases/reservar-itens.use-case'
 import { ReservaEstornadaEvent } from '@domain/events/reserva-estornada.event'
 import type { IProdutoRepository } from '@domain/repositories/produto.repository'
+import { PRODUTO_REPO_TOKEN } from '@domain/repositories/produto.repository'
 import type { IReservaRepository } from '@domain/repositories/reserva.repository'
+import { RESERVA_REPO_TOKEN } from '@domain/repositories/reserva.repository'
 import { EstoqueProduto } from '@domain/value-objects/estoque-produto.vo'
 
 @Injectable()

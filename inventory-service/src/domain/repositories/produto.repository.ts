@@ -1,5 +1,7 @@
 import { Produto } from '@domain/entities/produto.entity'
 
+export const PRODUTO_REPO_TOKEN = 'IProdutoRepository'
+
 export interface IProdutoRepository {
   findById(id: number): Promise<Produto | null>
   findByIds(ids: number[]): Promise<Produto[]>

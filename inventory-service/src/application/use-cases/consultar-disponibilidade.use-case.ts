@@ -6,8 +6,8 @@ import {
   consultarDisponibilidadeSchema,
   DisponibilidadeItem
 } from '@application/dto/consultar-disponibilidade.dto'
-import { PRODUTO_REPO_TOKEN } from '@application/use-cases/reservar-itens.use-case'
 import type { IProdutoRepository } from '@domain/repositories/produto.repository'
+import { PRODUTO_REPO_TOKEN } from '@domain/repositories/produto.repository'
 
 @Injectable()
 export class ConsultarDisponibilidadeUseCase {
