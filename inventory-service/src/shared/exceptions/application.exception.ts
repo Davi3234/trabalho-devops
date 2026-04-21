@@ -1,10 +1,10 @@
-export class ApplicationException extends Error {
+export class ApplicationException<T extends Record<string, any> = Record<string, any>> extends Error {
 
   readonly timestamp = new Date(Date.now())
 
   constructor(
     public readonly message: string,
-    public readonly details: Record<string, any> | null = null
+    public readonly details: T | null = null
   ) {
     super(message)
   }
