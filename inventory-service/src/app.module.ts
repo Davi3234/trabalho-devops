@@ -18,6 +18,7 @@ import { PrismaProdutoRepository } from '@infrastructure/repositories/prisma-pro
 import { PrismaReservaRepository } from '@infrastructure/repositories/prisma-reserva.repository'
 import { ReservaExpiryJob } from '@infrastructure/schedulers/reserva-expiry.job'
 import { PrismaService } from '@infrastructure/support/prisma.service'
+import { AppController } from '@presentation/controllers/app.controller'
 import { EstoqueController } from '@presentation/controllers/estoque.controller'
 import { CatchAllExceptionFilter } from '@presentation/filters/catch-all.filter'
 
@@ -31,6 +32,7 @@ import { CatchAllExceptionFilter } from '@presentation/filters/catch-all.filter'
     RabbitMQModule,
   ],
   controllers: [
+    AppController,
     EstoqueController,
     RabbitMQConsumerController,
   ],
