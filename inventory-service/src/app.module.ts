@@ -8,6 +8,7 @@ import { PedidoCanceladoHandler } from '@application/handlers/pedido-cancelado.h
 import { PedidoCriadoHandler } from '@application/handlers/pedido-criado.handler'
 import { ConfirmarBaixaUseCase } from '@application/use-cases/confirmar-baixa.use-case'
 import { ConsultarDisponibilidadeUseCase } from '@application/use-cases/consultar-disponibilidade.use-case'
+import { EntradaEstoqueUseCase } from '@application/use-cases/entrada-estoque.use-case'
 import { EstornarReservaUseCase } from '@application/use-cases/estornar-reserva.use-case'
 import { ExpirarReservasUseCase } from '@application/use-cases/expirar-reserva.use-case'
 import { ReservarItensUseCase } from '@application/use-cases/reservar-itens.use-case'
@@ -49,6 +50,7 @@ import { CatchAllExceptionFilter } from '@presentation/filters/catch-all.filter'
     EstornarReservaUseCase,
     ConsultarDisponibilidadeUseCase,
     ExpirarReservasUseCase,
+    EntradaEstoqueUseCase,
 
     PedidoCriadoHandler,
     PedidoCanceladoHandler,

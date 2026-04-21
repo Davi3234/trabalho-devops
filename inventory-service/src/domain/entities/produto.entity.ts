@@ -82,4 +82,9 @@ export class Produto {
     this.props.quantidadeReservada = this.props.quantidadeReservada.subtract(quantidade)
     this.props.atualizadoEm = new Date()
   }
+
+  adicionarEstoque(quantidade: EstoqueProduto) {
+    this.props.quantidadeTotal = this.props.quantidadeTotal.add(quantidade)
+    this.props.atualizadoEm = new Date()
+  }
 }
