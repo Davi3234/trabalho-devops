@@ -154,6 +154,8 @@ services:
       redis-server --requirepass ${REDIS_PASSWORD_INVENTORY}
     volumes:
       - redis_data:/data
+    networks:
+      - app-network
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
@@ -171,6 +173,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - app-network
 
 volumes:
   inventory_data:
