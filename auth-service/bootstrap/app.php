@@ -25,7 +25,7 @@ $app = new Laravel\Lumen\Application(
 
 // $app->withFacades();
 
-// $app->withEloquent();
+$app->withEloquent();
 
 /*
 |--------------------------------------------------------------------------
@@ -50,6 +50,45 @@ $app->singleton(
 
 /*
 |--------------------------------------------------------------------------
+| Register Container Bindings for Domain Services
+|--------------------------------------------------------------------------
+|
+| Register the bindings for repositories and services needed by the
+| application to work with the authentication domain.
+|
+*/
+
+$app->singleton(
+    App\Domain\User\Repository\UserRepositoryInterface::class,
+    App\Infrastructure\Persistence\Repository\UserRepository::class
+);
+
+$app->singleton(
+    App\Domain\Auth\Service\TokenService::class,
+    App\Domain\Auth\Service\TokenService::class
+);
+
+$app->singleton(
+    App\Application\UseCase\LoginUser\LoginUserHandler::class,
+    function ($app) {
+        return new App\Application\UseCase\LoginUser\LoginUserHandler(
+            $app->make(App\Domain\User\Repository\UserRepositoryInterface::class),
+            $app->make(App\Domain\Auth\Service\TokenService::class)
+        );
+    }
+);
+
+$app->singleton(
+    App\Application\UseCase\RegisterUser\RegisterUserHandler::class,
+    function ($app) {
+        return new App\Application\UseCase\RegisterUser\RegisterUserHandler(
+            $app->make(App\Domain\User\Repository\UserRepositoryInterface::class)
+        );
+    }
+);
+
+/*
+|--------------------------------------------------------------------------
 | Register Config Files
 |--------------------------------------------------------------------------
 |
@@ -60,6 +99,7 @@ $app->singleton(
 */
 
 $app->configure('app');
+$app->configure('database');
 
 /*
 |--------------------------------------------------------------------------
@@ -76,9 +116,9 @@ $app->configure('app');
 //     App\Http\Middleware\ExampleMiddleware::class
 // ]);
 
-// $app->routeMiddleware([
-//     'auth' => App\Http\Middleware\Authenticate::class,
-// ]);
+$app->routeMiddleware([
+    'auth' => App\Interfaces\Http\Middleware\Authenticate::class,
+]);
 
 /*
 |--------------------------------------------------------------------------
