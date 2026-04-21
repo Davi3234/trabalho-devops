@@ -1,8 +1,64 @@
 import { Module } from '@nestjs/common'
+import { ConfigModule } from '@nestjs/config'
+import { APP_FILTER } from '@nestjs/core'
+import { ScheduleModule } from '@nestjs/schedule'
+
+import { PagamentoConfirmadoHandler } from '@application/handlers/pagamento-confirmado.handler'
+import { PedidoCanceladoHandler } from '@application/handlers/pedido-cancelado.handler'
+import { PedidoCriadoHandler } from '@application/handlers/pedido-criado.handler'
+import { ConfirmarBaixaUseCase } from '@application/use-cases/confirmar-baixa.use-case'
+import { ConsultarDisponibilidadeUseCase } from '@application/use-cases/consultar-disponibilidade.use-case'
+import { EntradaEstoqueUseCase } from '@application/use-cases/entrada-estoque.use-case'
+import { EstornarReservaUseCase } from '@application/use-cases/estornar-reserva.use-case'
+import { ExpirarReservasUseCase } from '@application/use-cases/expirar-reserva.use-case'
+import { ReservarItensUseCase } from '@application/use-cases/reservar-itens.use-case'
+import { PRODUTO_REPO_TOKEN } from '@domain/repositories/produto.repository'
+import { RESERVA_REPO_TOKEN } from '@domain/repositories/reserva.repository'
+import { RabbitMQConsumerController } from '@infrastructure/messaging/rabbitmq-consumer'
+import { RabbitMQModule } from '@infrastructure/rabbitmq.module'
+import { RedisModule } from '@infrastructure/redis.module'
+import { PrismaProdutoRepository } from '@infrastructure/repositories/prisma-product.repository'
+import { PrismaReservaRepository } from '@infrastructure/repositories/prisma-reserva.repository'
+import { ReservaExpiryJob } from '@infrastructure/schedulers/reserva-expiry.job'
+import { PrismaService } from '@infrastructure/support/prisma.service'
+import { AppController } from '@presentation/controllers/app.controller'
+import { EstoqueController } from '@presentation/controllers/estoque.controller'
+import { CatchAllExceptionFilter } from '@presentation/filters/catch-all.filter'
 
 @Module({
-  imports: [],
-  controllers: [],
-  providers: [],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true
+    }),
+    ScheduleModule.forRoot(),
+    RedisModule,
+    RabbitMQModule,
+  ],
+  controllers: [
+    AppController,
+    EstoqueController,
+    RabbitMQConsumerController,
+  ],
+  providers: [
+    PrismaService,
+
+    { provide: PRODUTO_REPO_TOKEN, useClass: PrismaProdutoRepository },
+    { provide: RESERVA_REPO_TOKEN, useClass: PrismaReservaRepository },
+
+    ReservarItensUseCase,
+    ConfirmarBaixaUseCase,
+    EstornarReservaUseCase,
+    ConsultarDisponibilidadeUseCase,
+    ExpirarReservasUseCase,
+    EntradaEstoqueUseCase,
+
+    PedidoCriadoHandler,
+    PedidoCanceladoHandler,
+    PagamentoConfirmadoHandler,
+
+    ReservaExpiryJob,
+
+    { provide: APP_FILTER, useClass: CatchAllExceptionFilter },
+  ],
 })
 export class AppModule { }
