@@ -13,7 +13,7 @@ export const reservarItensSchema = z.object({
     })
       .default({} as any),
   )
-    .min(1)
+    .min(1, 'Deve haver pelo menos um item')
     .default([]),
 })
 

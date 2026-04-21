@@ -28,12 +28,6 @@ export class EntradaEstoqueUseCase {
   async execute(input: EntradaEstoqueInput): Promise<EntradaEstoqueOutput> {
     const dto = entradaEstoqueSchema.parse(input)
 
-    if (!dto.itens.length) {
-      return {
-        produtosAtualizados: []
-      }
-    }
-
     const produtoIds = dto.itens.map(item => item.produtoId)
 
     const lockKey = `estoque:entrada:${produtoIds.sort().join(',')}`

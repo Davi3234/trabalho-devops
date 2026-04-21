@@ -11,6 +11,8 @@ export const entradaEstoqueSchema = z.object({
     })
       .default({} as any),
   )
+    .min(1, 'Deve haver pelo menos um item')
+    .max(100, 'Deve haver no máximo 100 itens')
     .default([]),
 })
   .default({} as any)
