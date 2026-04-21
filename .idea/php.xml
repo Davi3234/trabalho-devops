@@ -222,6 +222,7 @@
       <path value="$PROJECT_DIR$/payment-service/vendor/laravel/serializable-closure" />
       <path value="$PROJECT_DIR$/payment-service/vendor/laravel/lumen-framework" />
       <path value="$PROJECT_DIR$/payment-service/vendor/nesbot/carbon" />
+      <path value="$PROJECT_DIR$/auth-service/vendor/firebase/php-jwt" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.1" />

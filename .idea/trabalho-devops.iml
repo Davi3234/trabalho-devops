@@ -222,6 +222,7 @@
       <excludeFolder url="file://$MODULE_DIR$/payment-service/vendor/theseer/tokenizer" />
       <excludeFolder url="file://$MODULE_DIR$/payment-service/vendor/vlucas/phpdotenv" />
       <excludeFolder url="file://$MODULE_DIR$/payment-service/vendor/voku/portable-ascii" />
+      <excludeFolder url="file://$MODULE_DIR$/auth-service/vendor/firebase/php-jwt" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

@@ -2,15 +2,15 @@
 
 namespace App\Domain\User\ValueObject;
 
-use App\Domain\Exceptions\InvalidPasswordException;
+use App\Domain\Exceptions\InvalidAutenticationException;
 
 class Password{
-    
+
     private string $hashed;
 
     public function __construct(string $hashed){
         if (empty($hashed)) {
-            throw new InvalidPasswordException("Senha não pode ser vazia.");
+            throw new InvalidAutenticationException("Senha não pode ser vazia.");
         }
         $this->hashed = $hashed;
     }
@@ -22,7 +22,7 @@ class Password{
      */
     public static function fromPlain(string $plainPassword): self{
         if (strlen($plainPassword) < 6) {
-            throw new InvalidPasswordException("Senha precisa ter pelo menos 6 caracteres.");
+            throw new InvalidAutenticationException("Senha precisa ter pelo menos 6 caracteres.");
         }
 
         $hashed = password_hash($plainPassword, PASSWORD_BCRYPT);

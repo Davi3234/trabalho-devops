@@ -2,9 +2,7 @@
 
 namespace App\Interfaces\Http\Request;
 
-use Illuminate\Foundation\Http\FormRequest;
-
-class LoginRequest extends FormRequest{
+class LoginRequest extends FormRequest {
 
     /**
      * Determina se o usuário ta autorizado para poder fazer a requisição.
@@ -31,10 +29,10 @@ class LoginRequest extends FormRequest{
      */
     public function messages(): array{
         return [
-            'email.required' => 'Email is required',
-            'email.email' => 'Email must be a valid email address',
-            'password.required' => 'Password is required',
-            'password.min' => 'Password must be at least 6 characters',
+            'email.required' => 'Email é obrigatório',
+            'email.email' => 'Email precisa ser um email válido',
+            'password.required' => 'Password é obrigatório',
+            'password.min' => 'Password precisa ter no mínimo 6 caracteres',
         ];
     }
 }

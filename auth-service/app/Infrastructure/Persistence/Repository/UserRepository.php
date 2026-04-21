@@ -13,15 +13,16 @@ class UserRepository implements UserRepositoryInterface{
     /**
      * Salva um usuário no banco de dados
      * @param User $user
-     * @return void
+     * @return int
      */
-    public function save(User $user): void
-    {
-        UserEloquent::create([
+    public function save(User $user): int{
+        $userEloquent = UserEloquent::create([
             'name' => $user->name(),
             'email' => $user->email()->value(),
             'password' => $user->password()->hashed(),
         ]);
+
+        return $userEloquent->id;
     }
 
     /**

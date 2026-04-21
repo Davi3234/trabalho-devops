@@ -2,6 +2,7 @@
 
 namespace App\Domain\Auth\Service;
 
+
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
@@ -43,16 +44,6 @@ class TokenService{
         } catch (\Exception $e) {
             return null;
         }
-    }
-
-    /**
-     * Extrai o user ID de um token
-     * @param string $token
-     * @return int|null
-     */
-    public function getUserId(string $token): ?int{
-        $payload = $this->validate($token);
-        return $payload?->sub ?? null;
     }
 }
 
