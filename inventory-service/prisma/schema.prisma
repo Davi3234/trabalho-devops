@@ -4,15 +4,16 @@ datasource db {
 
 generator client {
   provider = "prisma-client"
+  output   = "../src/infrastructure/generated"
 }
 
 model Produto {
   id                  Int      @id @default(autoincrement())
-  quantidadeTotal     Int      @map("quantidade_total")
+  quantidadeTotal     Int      @default(0) @map("quantidade_total")
   quantidadeReservada Int      @default(0) @map("quantidade_reservada")
   version             Int      @default(0)
   criadoEm            DateTime @default(now()) @map("criado_em")
-  atualizadoEm        DateTime @updatedAt @map("atualizado_em")
+  atualizadoEm        DateTime @default(now()) @updatedAt @map("atualizado_em")
 
   itensReserva ItemReserva[]
 
@@ -25,7 +26,7 @@ model Reserva {
   status       StatusReserva @default(pendente)
   criadoEm     DateTime      @default(now()) @map("criado_em")
   expiradoEm   DateTime      @map("expirado_em")
-  atualizadoEm DateTime      @updatedAt @map("atualizado_em")
+  atualizadoEm DateTime      @default(now()) @updatedAt @map("atualizado_em")
 
   itens ItemReserva[]
 
