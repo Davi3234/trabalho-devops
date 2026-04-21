@@ -21,7 +21,7 @@ services:
     env_file: ./auth-service/.env
     depends_on:
       db-auth:
-        condition: service_health
+        condition: service_healthy
     volumes:
       - ./auth-service:/var/www
       - /var/www/vendor
@@ -61,7 +61,6 @@ services:
   order-service:
     build:
       context: ./order-service
-    env_file: ./.env.order-service
     environment:
       DB_URL: jdbc:postgresql://db-order:5432/${POSTGRES_URL_ORDER}
       DB_USERNAME: ${POSTGRES_USER_ORDER}
@@ -131,19 +130,6 @@ services:
     networks:
       - app-network
 
-  inventory-service.cache:
-    image: redis:latest
-    environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD_INVENTORY}
-    ports:
-      - 6379:6379
-    command: >
-      redis-server --requirepass ${REDIS_PASSWORD_INVENTORY}
-    volumes:
-      - redis_data:/data
-    networks:
-      - app-network
-
   payment-service:
     build:
       context: ./payment-service
@@ -155,6 +141,19 @@ services:
     volumes:
       - ./payment-service:/var/www
       - /var/www/vendor
+    networks:
+      - app-network
+
+  inventory-service.cache:
+    image: redis:latest
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD_INVENTORY}
+    ports:
+      - 6379:6379
+    command: >
+      redis-server --requirepass ${REDIS_PASSWORD_INVENTORY}
+    volumes:
+      - redis_data:/data
     networks:
       - app-network
 
