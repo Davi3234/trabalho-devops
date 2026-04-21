@@ -9,8 +9,8 @@
  * 🟢 You can import this file directly.
  */
 import type * as runtime from "@prisma/client/runtime/client"
-import type * as $Enums from "../enums.js"
-import type * as Prisma from "../internal/prismaNamespace.js"
+import type * as $Enums from "../enums"
+import type * as Prisma from "../internal/prismaNamespace"
 
 /**
  * Model Produto
@@ -42,7 +42,6 @@ export type ProdutoSumAggregateOutputType = {
 
 export type ProdutoMinAggregateOutputType = {
   id: number | null
-  nome: string | null
   quantidadeTotal: number | null
   quantidadeReservada: number | null
   version: number | null
@@ -52,7 +51,6 @@ export type ProdutoMinAggregateOutputType = {
 
 export type ProdutoMaxAggregateOutputType = {
   id: number | null
-  nome: string | null
   quantidadeTotal: number | null
   quantidadeReservada: number | null
   version: number | null
@@ -62,7 +60,6 @@ export type ProdutoMaxAggregateOutputType = {
 
 export type ProdutoCountAggregateOutputType = {
   id: number
-  nome: number
   quantidadeTotal: number
   quantidadeReservada: number
   version: number
@@ -88,7 +85,6 @@ export type ProdutoSumAggregateInputType = {
 
 export type ProdutoMinAggregateInputType = {
   id?: true
-  nome?: true
   quantidadeTotal?: true
   quantidadeReservada?: true
   version?: true
@@ -98,7 +94,6 @@ export type ProdutoMinAggregateInputType = {
 
 export type ProdutoMaxAggregateInputType = {
   id?: true
-  nome?: true
   quantidadeTotal?: true
   quantidadeReservada?: true
   version?: true
@@ -108,7 +103,6 @@ export type ProdutoMaxAggregateInputType = {
 
 export type ProdutoCountAggregateInputType = {
   id?: true
-  nome?: true
   quantidadeTotal?: true
   quantidadeReservada?: true
   version?: true
@@ -205,7 +199,6 @@ export type ProdutoGroupByArgs<ExtArgs extends runtime.Types.Extensions.Internal
 
 export type ProdutoGroupByOutputType = {
   id: number
-  nome: string
   quantidadeTotal: number
   quantidadeReservada: number
   version: number
@@ -238,7 +231,6 @@ export type ProdutoWhereInput = {
   OR?: Prisma.ProdutoWhereInput[]
   NOT?: Prisma.ProdutoWhereInput | Prisma.ProdutoWhereInput[]
   id?: Prisma.IntFilter<"Produto"> | number
-  nome?: Prisma.StringFilter<"Produto"> | string
   quantidadeTotal?: Prisma.IntFilter<"Produto"> | number
   quantidadeReservada?: Prisma.IntFilter<"Produto"> | number
   version?: Prisma.IntFilter<"Produto"> | number
@@ -249,7 +241,6 @@ export type ProdutoWhereInput = {
 
 export type ProdutoOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  nome?: Prisma.SortOrder
   quantidadeTotal?: Prisma.SortOrder
   quantidadeReservada?: Prisma.SortOrder
   version?: Prisma.SortOrder
@@ -263,7 +254,6 @@ export type ProdutoWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.ProdutoWhereInput | Prisma.ProdutoWhereInput[]
   OR?: Prisma.ProdutoWhereInput[]
   NOT?: Prisma.ProdutoWhereInput | Prisma.ProdutoWhereInput[]
-  nome?: Prisma.StringFilter<"Produto"> | string
   quantidadeTotal?: Prisma.IntFilter<"Produto"> | number
   quantidadeReservada?: Prisma.IntFilter<"Produto"> | number
   version?: Prisma.IntFilter<"Produto"> | number
@@ -274,7 +264,6 @@ export type ProdutoWhereUniqueInput = Prisma.AtLeast<{
 
 export type ProdutoOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  nome?: Prisma.SortOrder
   quantidadeTotal?: Prisma.SortOrder
   quantidadeReservada?: Prisma.SortOrder
   version?: Prisma.SortOrder
@@ -292,7 +281,6 @@ export type ProdutoScalarWhereWithAggregatesInput = {
   OR?: Prisma.ProdutoScalarWhereWithAggregatesInput[]
   NOT?: Prisma.ProdutoScalarWhereWithAggregatesInput | Prisma.ProdutoScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"Produto"> | number
-  nome?: Prisma.StringWithAggregatesFilter<"Produto"> | string
   quantidadeTotal?: Prisma.IntWithAggregatesFilter<"Produto"> | number
   quantidadeReservada?: Prisma.IntWithAggregatesFilter<"Produto"> | number
   version?: Prisma.IntWithAggregatesFilter<"Produto"> | number
@@ -301,7 +289,6 @@ export type ProdutoScalarWhereWithAggregatesInput = {
 }
 
 export type ProdutoCreateInput = {
-  nome: string
   quantidadeTotal: number
   quantidadeReservada?: number
   version?: number
@@ -312,7 +299,6 @@ export type ProdutoCreateInput = {
 
 export type ProdutoUncheckedCreateInput = {
   id?: number
-  nome: string
   quantidadeTotal: number
   quantidadeReservada?: number
   version?: number
@@ -322,7 +308,6 @@ export type ProdutoUncheckedCreateInput = {
 }
 
 export type ProdutoUpdateInput = {
-  nome?: Prisma.StringFieldUpdateOperationsInput | string
   quantidadeTotal?: Prisma.IntFieldUpdateOperationsInput | number
   quantidadeReservada?: Prisma.IntFieldUpdateOperationsInput | number
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -333,7 +318,6 @@ export type ProdutoUpdateInput = {
 
 export type ProdutoUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  nome?: Prisma.StringFieldUpdateOperationsInput | string
   quantidadeTotal?: Prisma.IntFieldUpdateOperationsInput | number
   quantidadeReservada?: Prisma.IntFieldUpdateOperationsInput | number
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -344,7 +328,6 @@ export type ProdutoUncheckedUpdateInput = {
 
 export type ProdutoCreateManyInput = {
   id?: number
-  nome: string
   quantidadeTotal: number
   quantidadeReservada?: number
   version?: number
@@ -353,7 +336,6 @@ export type ProdutoCreateManyInput = {
 }
 
 export type ProdutoUpdateManyMutationInput = {
-  nome?: Prisma.StringFieldUpdateOperationsInput | string
   quantidadeTotal?: Prisma.IntFieldUpdateOperationsInput | number
   quantidadeReservada?: Prisma.IntFieldUpdateOperationsInput | number
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -363,7 +345,6 @@ export type ProdutoUpdateManyMutationInput = {
 
 export type ProdutoUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  nome?: Prisma.StringFieldUpdateOperationsInput | string
   quantidadeTotal?: Prisma.IntFieldUpdateOperationsInput | number
   quantidadeReservada?: Prisma.IntFieldUpdateOperationsInput | number
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -373,7 +354,6 @@ export type ProdutoUncheckedUpdateManyInput = {
 
 export type ProdutoCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  nome?: Prisma.SortOrder
   quantidadeTotal?: Prisma.SortOrder
   quantidadeReservada?: Prisma.SortOrder
   version?: Prisma.SortOrder
@@ -390,7 +370,6 @@ export type ProdutoAvgOrderByAggregateInput = {
 
 export type ProdutoMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  nome?: Prisma.SortOrder
   quantidadeTotal?: Prisma.SortOrder
   quantidadeReservada?: Prisma.SortOrder
   version?: Prisma.SortOrder
@@ -400,7 +379,6 @@ export type ProdutoMaxOrderByAggregateInput = {
 
 export type ProdutoMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  nome?: Prisma.SortOrder
   quantidadeTotal?: Prisma.SortOrder
   quantidadeReservada?: Prisma.SortOrder
   version?: Prisma.SortOrder
@@ -418,10 +396,6 @@ export type ProdutoSumOrderByAggregateInput = {
 export type ProdutoScalarRelationFilter = {
   is?: Prisma.ProdutoWhereInput
   isNot?: Prisma.ProdutoWhereInput
-}
-
-export type StringFieldUpdateOperationsInput = {
-  set?: string
 }
 
 export type IntFieldUpdateOperationsInput = {
@@ -451,7 +425,6 @@ export type ProdutoUpdateOneRequiredWithoutItensReservaNestedInput = {
 }
 
 export type ProdutoCreateWithoutItensReservaInput = {
-  nome: string
   quantidadeTotal: number
   quantidadeReservada?: number
   version?: number
@@ -461,7 +434,6 @@ export type ProdutoCreateWithoutItensReservaInput = {
 
 export type ProdutoUncheckedCreateWithoutItensReservaInput = {
   id?: number
-  nome: string
   quantidadeTotal: number
   quantidadeReservada?: number
   version?: number
@@ -486,7 +458,6 @@ export type ProdutoUpdateToOneWithWhereWithoutItensReservaInput = {
 }
 
 export type ProdutoUpdateWithoutItensReservaInput = {
-  nome?: Prisma.StringFieldUpdateOperationsInput | string
   quantidadeTotal?: Prisma.IntFieldUpdateOperationsInput | number
   quantidadeReservada?: Prisma.IntFieldUpdateOperationsInput | number
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -496,7 +467,6 @@ export type ProdutoUpdateWithoutItensReservaInput = {
 
 export type ProdutoUncheckedUpdateWithoutItensReservaInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  nome?: Prisma.StringFieldUpdateOperationsInput | string
   quantidadeTotal?: Prisma.IntFieldUpdateOperationsInput | number
   quantidadeReservada?: Prisma.IntFieldUpdateOperationsInput | number
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -537,7 +507,6 @@ export type ProdutoCountOutputTypeCountItensReservaArgs<ExtArgs extends runtime.
 
 export type ProdutoSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  nome?: boolean
   quantidadeTotal?: boolean
   quantidadeReservada?: boolean
   version?: boolean
@@ -549,7 +518,6 @@ export type ProdutoSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
 
 export type ProdutoSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  nome?: boolean
   quantidadeTotal?: boolean
   quantidadeReservada?: boolean
   version?: boolean
@@ -559,7 +527,6 @@ export type ProdutoSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
 
 export type ProdutoSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  nome?: boolean
   quantidadeTotal?: boolean
   quantidadeReservada?: boolean
   version?: boolean
@@ -569,7 +536,6 @@ export type ProdutoSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
 
 export type ProdutoSelectScalar = {
   id?: boolean
-  nome?: boolean
   quantidadeTotal?: boolean
   quantidadeReservada?: boolean
   version?: boolean
@@ -577,7 +543,7 @@ export type ProdutoSelectScalar = {
   atualizadoEm?: boolean
 }
 
-export type ProdutoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "nome" | "quantidadeTotal" | "quantidadeReservada" | "version" | "criadoEm" | "atualizadoEm", ExtArgs["result"]["produto"]>
+export type ProdutoOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "quantidadeTotal" | "quantidadeReservada" | "version" | "criadoEm" | "atualizadoEm", ExtArgs["result"]["produto"]>
 export type ProdutoInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   itensReserva?: boolean | Prisma.Produto$itensReservaArgs<ExtArgs>
   _count?: boolean | Prisma.ProdutoCountOutputTypeDefaultArgs<ExtArgs>
@@ -592,7 +558,6 @@ export type $ProdutoPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
-    nome: string
     quantidadeTotal: number
     quantidadeReservada: number
     version: number
@@ -1023,7 +988,6 @@ export interface Prisma__ProdutoClient<T, Null = never, ExtArgs extends runtime.
  */
 export interface ProdutoFieldRefs {
   readonly id: Prisma.FieldRef<"Produto", 'Int'>
-  readonly nome: Prisma.FieldRef<"Produto", 'String'>
   readonly quantidadeTotal: Prisma.FieldRef<"Produto", 'Int'>
   readonly quantidadeReservada: Prisma.FieldRef<"Produto", 'Int'>
   readonly version: Prisma.FieldRef<"Produto", 'Int'>

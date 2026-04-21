@@ -8,7 +8,7 @@
  *
  * 🟢 You can import this file directly.
  */
-export type * from './models/Produto.js'
-export type * from './models/Reserva.js'
-export type * from './models/ItemReserva.js'
-export type * from './commonInputTypes.js'
+export type * from './models/Produto'
+export type * from './models/Reserva'
+export type * from './models/ItemReserva'
+export type * from './commonInputTypes'
