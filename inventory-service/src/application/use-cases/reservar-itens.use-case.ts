@@ -7,6 +7,8 @@ import {
 } from '@application/dto/reservar-itens.dto'
 import type { IEventPublisher } from '@application/ports/event-publisher.port'
 import { EVENT_PUBLISHER_TOKEN } from '@application/ports/event-publisher.port'
+import type { ILockService, } from '@application/ports/lock-service.port'
+import { LOCK_SERVICE_TOKEN } from '@application/ports/lock-service.port'
 import { ItemReserva } from '@domain/entities/item-reserva.entity'
 import { Produto } from '@domain/entities/produto.entity'
 import { Reserva } from '@domain/entities/reserva.entity'
@@ -22,6 +24,8 @@ import { BusinessException } from '@shared/exceptions/business.exception'
 export const PRODUTO_REPO_TOKEN = 'IProdutoRepository'
 export const RESERVA_REPO_TOKEN = 'IReservaRepository'
 
+const LOCK_TTL_MS = 10_000
+
 @Injectable()
 export class ReservarItensUseCase {
 
@@ -29,6 +33,7 @@ export class ReservarItensUseCase {
     @Inject(PRODUTO_REPO_TOKEN) private readonly produtoRepository: IProdutoRepository,
     @Inject(RESERVA_REPO_TOKEN) private readonly reservaRepository: IReservaRepository,
     @Inject(EVENT_PUBLISHER_TOKEN) private readonly eventPublisher: IEventPublisher,
+    @Inject(LOCK_SERVICE_TOKEN) private readonly lockService: ILockService,
   ) { }
 
   async execute(input: ReservarItensInput): Promise<ReservarItensOutput> {
@@ -45,7 +50,15 @@ export class ReservarItensUseCase {
       }
     }
 
-    return await this.processarReserva(pedidoId, dto)
+    const lockKey = `reserva:pedido:${pedidoId.id}`
+
+    await this.lock(lockKey, pedidoId.id)
+
+    try {
+      return await this.processarReserva(pedidoId, dto)
+    } finally {
+      await this.lockService.release(lockKey)
+    }
   }
 
   private async processarReserva(pedidoId: PedidoId, dto: ReservarItensInput) {
@@ -135,6 +148,14 @@ export class ReservarItensUseCase {
       )
 
       throw new BusinessException(`Estoque insuficiente para ${itensFaltantes.length} item(s) do pedido`)
+    }
+  }
+
+  private async lock(lockKey: string, pedidoId: number) {
+    const isAcquired = await this.lockService.acquire(lockKey, LOCK_TTL_MS)
+
+    if (!isAcquired) {
+      throw new BusinessException('Reserva em processamento para este pedido. Tente novamente.')
     }
   }
 }
