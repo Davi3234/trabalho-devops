@@ -1,6 +1,7 @@
 export interface Environment {
   ENVIRONMENT: 'PRODUCTION' | 'DEVELOPMENT' | 'TEST'
   PORT: number
+  DATABASE_URL: string
   REDIS_HOST: string
   REDIS_PORT: number
   REDIS_PASSWORD: string
