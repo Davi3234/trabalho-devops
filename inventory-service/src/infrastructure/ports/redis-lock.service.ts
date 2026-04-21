@@ -4,8 +4,6 @@ import { ILockService } from '@application/ports/lock-service.port'
 import { RedisCacheService } from '@infrastructure/support/redis-cache.service'
 import { CriticalException } from '@shared/exceptions/critical.exception'
 
-export const REDIS_CLIENT_TOKEN = 'REDIS_CLIENT'
-
 const LOCK_PREFIX = 'lock:'
 const LOCK_VALUE = 1
 

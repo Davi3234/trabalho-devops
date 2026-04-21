@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common'
 import { ClientsModule, Transport } from '@nestjs/microservices'
 
-import { RABBITMQ_CLIENT_TOKEN } from '@infrastructure/ports/rabbitmq-publisher'
+import { EVENT_PUBLISHER_TOKEN } from '@application/ports/event-publisher.port'
+import { RabbitMQPublisher } from '@infrastructure/ports/rabbitmq-publisher'
+import { RABBITMQ_CLIENT_TOKEN } from '@infrastructure/rabbitmq.token'
 import { env } from '@shared/env'
 
 @Module({
@@ -18,5 +20,13 @@ import { env } from '@shared/env'
       },
     ]),
   ],
+  providers: [
+    RabbitMQPublisher,
+    {
+      provide: EVENT_PUBLISHER_TOKEN,
+      useClass: RabbitMQPublisher
+    },
+  ],
+  exports: [RabbitMQPublisher, EVENT_PUBLISHER_TOKEN],
 })
 export class RabbitMQModule { }

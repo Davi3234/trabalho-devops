@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common'
 import { Redis } from 'ioredis'
 
-import { REDIS_CLIENT_TOKEN, RedisLockService } from '@infrastructure/ports/redis-lock.service'
+import { LOCK_SERVICE_TOKEN } from '@application/ports/lock-service.port'
+import { RedisLockService } from '@infrastructure/ports/redis-lock.service'
+import { REDIS_CLIENT_TOKEN } from '@infrastructure/redis.token'
 import { RedisCacheService } from '@infrastructure/support/redis-cache.service'
 import { env } from '@shared/env'
 
@@ -19,9 +21,13 @@ import { env } from '@shared/env'
         })
       },
     },
-    RedisLockService,
     RedisCacheService,
+    RedisLockService,
+    {
+      provide: LOCK_SERVICE_TOKEN,
+      useClass: RedisLockService,
+    },
   ],
-  exports: [REDIS_CLIENT_TOKEN, RedisLockService, RedisCacheService],
+  exports: [REDIS_CLIENT_TOKEN, RedisLockService, RedisCacheService, LOCK_SERVICE_TOKEN],
 })
 export class RedisModule { }

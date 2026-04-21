@@ -4,8 +4,7 @@ import { lastValueFrom } from 'rxjs'
 
 import { IEventPublisher } from '@application/ports/event-publisher.port'
 import { DomainEvent } from '@domain/events/domain-event'
-
-export const RABBITMQ_CLIENT_TOKEN = 'RABBITMQ_CLIENT'
+import { RABBITMQ_CLIENT_TOKEN } from '@infrastructure/rabbitmq.token'
 
 @Injectable()
 export class RabbitMQPublisher implements IEventPublisher {

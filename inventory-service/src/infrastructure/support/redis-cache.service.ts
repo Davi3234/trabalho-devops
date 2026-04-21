@@ -1,7 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
-import { Redis } from 'ioredis'
 
-import { REDIS_CLIENT_TOKEN } from '@infrastructure/ports/redis-lock.service'
+import { REDIS_CLIENT_TOKEN } from '@infrastructure/redis.token'
 
 const CACHE_PREFIX = 'cache:'
 
@@ -11,7 +10,7 @@ export class RedisCacheService {
   private readonly logger = new Logger(RedisCacheService.name)
 
   constructor(
-    @Inject(REDIS_CLIENT_TOKEN) private readonly redis: Redis
+    @Inject(REDIS_CLIENT_TOKEN) private readonly redis: any
   ) { }
 
   async get<T>(key: string) {
