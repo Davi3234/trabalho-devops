@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 
 import {
   ReservarItensInput,
@@ -29,6 +29,8 @@ const LOCK_TTL_MS = 10_000
 @Injectable()
 export class ReservarItensUseCase {
 
+  private readonly logger = new Logger(ReservarItensUseCase.name)
+
   constructor(
     @Inject(PRODUTO_REPO_TOKEN) private readonly produtoRepository: IProdutoRepository,
     @Inject(RESERVA_REPO_TOKEN) private readonly reservaRepository: IReservaRepository,
@@ -43,6 +45,8 @@ export class ReservarItensUseCase {
     const pedidoReservado = await this.reservaRepository.findByPedidoId(pedidoId)
 
     if (pedidoReservado) {
+      this.logger.warn(`Pedido ${pedidoId.id} já possui reserva. Ignorando duplicata.`)
+
       return {
         pedidoId: pedidoReservado.pedidoId.id,
         reservaId: pedidoReservado.id,
@@ -105,6 +109,8 @@ export class ReservarItensUseCase {
 
     await this.eventPublisher.publishMany(eventos)
 
+    this.logger.log(`Reserva criada: ${reserva.id} para pedido ${pedidoId.id}`)
+
     return {
       pedidoId: pedidoId.id,
       reservaId: reserva.id,
@@ -139,13 +145,13 @@ export class ReservarItensUseCase {
     }
 
     if (itensFaltantes.length > 0) {
-      await this.eventPublisher.publish(
-        new ReservaFalhouEvent(
-          pedidoId,
-          'Estoque insuficiente para um ou mais itens',
-          itensFaltantes,
-        )
-      )
+      this.logger.log(`Reserva falhou para pedido ${pedidoId}. Itens faltantes: ${JSON.stringify(itensFaltantes)}`)
+
+      await this.eventPublisher.publish(new ReservaFalhouEvent(
+        pedidoId,
+        'Estoque insuficiente para um ou mais itens',
+        itensFaltantes,
+      ))
 
       throw new BusinessException(`Estoque insuficiente para ${itensFaltantes.length} item(s) do pedido`)
     }
@@ -155,6 +161,8 @@ export class ReservarItensUseCase {
     const isAcquired = await this.lockService.acquire(lockKey, LOCK_TTL_MS)
 
     if (!isAcquired) {
+      this.logger.warn(`Lock não adquirido para pedido ${pedidoId}. Possível retry concorrente.`)
+
       throw new BusinessException('Reserva em processamento para este pedido. Tente novamente.')
     }
   }

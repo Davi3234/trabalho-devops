@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 
 import { EstornarReservaInput, estornarReservaSchema } from '@application/dto/estornar-reserva.use-case'
 import type { IEventPublisher } from '@application/ports/event-publisher.port'
@@ -14,6 +14,8 @@ import { PedidoId } from '@domain/value-objects/pedido-id.vo'
 @Injectable()
 export class EstornarReservaUseCase {
 
+  private readonly logger = new Logger(EstornarReservaUseCase.name)
+
   constructor(
     @Inject(PRODUTO_REPO_TOKEN) private readonly produtoRepo: IProdutoRepository,
     @Inject(RESERVA_REPO_TOKEN) private readonly reservaRepo: IReservaRepository,
@@ -27,14 +29,18 @@ export class EstornarReservaUseCase {
     const reserva = await this.reservaRepo.findByPedidoId(pedidoId)
 
     if (!reserva) {
+      this.logger.warn(`Nenhuma reserva encontrada para pedido ${pedidoIdDTO}. Nada a estornar.`)
       return
     }
 
     if (reserva.status === StatusReserva.ESTORNADO || reserva.status === StatusReserva.EXPIRADO) {
+      this.logger.warn(`Reserva do pedido ${pedidoIdDTO} já está ${reserva.status}. Ignorando.`)
       return
     }
 
     if (reserva.status === StatusReserva.CONFIRMADO) {
+      this.logger.warn(`Reserva do pedido ${pedidoIdDTO} já foi confirmada. Estorno de estoque não aplicável.`)
+
       return
     }
 
@@ -46,6 +52,8 @@ export class EstornarReservaUseCase {
       const produto = produtoMap.get(item.produtoId)
 
       if (!produto) {
+        this.logger.error(`Produto ${item.produtoId} não encontrado durante estorno`)
+
         continue
       }
 
@@ -66,5 +74,7 @@ export class EstornarReservaUseCase {
         })),
       )
     )
+
+    this.logger.log(`Reserva estornada para pedido ${pedidoIdDTO}`)
   }
 }
