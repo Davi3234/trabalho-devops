@@ -31,7 +31,7 @@ function makeReservaPendente(quantidade: number): Reserva {
     produtoId: PRODUTO_ID,
     quantidade: EstoqueProduto.create(quantidade),
   })
-  return Reserva.criar(PedidoId.create(PEDIDO_ID), [item])
+  return Reserva.create(PedidoId.create(PEDIDO_ID), [item])
 }
 
 function makeMocks() {

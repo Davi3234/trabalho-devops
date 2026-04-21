@@ -30,7 +30,7 @@ function makeProduto(id: number, total: number, reservado = 0): Produto {
 }
 
 function makeReserva(pedidoId: number): Reserva {
-  return Reserva.criar(
+  return Reserva.create(
     PedidoId.create(pedidoId),
     [{
       produtoId: PRODUTO_ID_A,

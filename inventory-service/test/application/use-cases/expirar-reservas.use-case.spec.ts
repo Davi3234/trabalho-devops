@@ -22,7 +22,7 @@ function makeReservaPendente(pedidoId: number, quantidade: number): Reserva {
     quantidade: EstoqueProduto.create(quantidade),
   })
 
-  return Reserva.criar(PedidoId.create(pedidoId), [item])
+  return Reserva.create(PedidoId.create(pedidoId), [item])
 }
 
 function makeProduto(reservado: number): Produto {

@@ -37,7 +37,7 @@ export class Reserva {
     this.state = ReservaStatusFabric.create(props.status)
   }
 
-  static criar(pedidoId: PedidoId, itens: ItemReserva[]) {
+  static create(pedidoId: PedidoId, itens: ItemReserva[]) {
     if (!itens.length) {
       throw new BusinessException('Reserva deve ter ao menos um item')
     }
