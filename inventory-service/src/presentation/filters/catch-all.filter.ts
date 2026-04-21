@@ -2,8 +2,10 @@ import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from
 import { HttpAdapterHost } from '@nestjs/core'
 
 import { env } from '@shared/env'
+import { ApplicationException } from '@shared/exceptions/application.exception'
 import { BusinessException } from '@shared/exceptions/business.exception'
 import { CriticalException } from '@shared/exceptions/critical.exception'
+import { ValidatorException } from '@shared/exceptions/validator.exception'
 
 @Catch()
 export class CatchAllExceptionFilter implements ExceptionFilter<Error> {
@@ -38,6 +40,10 @@ export class CatchAllExceptionFilter implements ExceptionFilter<Error> {
       }
     }
 
+    if (exception instanceof ApplicationException) {
+      return { ...(exception.details ?? {}), message: exception.message }
+    }
+
     if (exception instanceof HttpException) {
       return { message: exception.message }
     }
@@ -46,6 +52,7 @@ export class CatchAllExceptionFilter implements ExceptionFilter<Error> {
   }
 
   private static getStatusCode(exception: unknown) {
+    if (exception instanceof ValidatorException) return HttpStatus.BAD_REQUEST
     if (exception instanceof BusinessException) return HttpStatus.BAD_REQUEST
     if (exception instanceof CriticalException) return HttpStatus.INTERNAL_SERVER_ERROR
     if (exception instanceof HttpException) return exception.getStatus()
