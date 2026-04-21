@@ -3,6 +3,7 @@
 namespace App\Interfaces\Http\Middleware;
 
 use App\Domain\Auth\Service\TokenService;
+use App\Interfaces\Exceptions\InvalidTokenException;
 use Closure;
 use Illuminate\Http\Request;
 
@@ -23,21 +24,13 @@ class Authenticate{
         $token = $this->extractToken($request);
 
         if (!$token) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized - No token provided',
-                'error' => 'NO_TOKEN'
-            ], 401);
+            throw new InvalidTokenException();
         }
 
         $payload = $this->tokenService->validate($token);
 
         if (!$payload) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized - Invalid token',
-                'error' => 'INVALID_TOKEN'
-            ], 401);
+            throw new InvalidTokenException();
         }
 
         $request->attributes->add(['user' => $payload]);

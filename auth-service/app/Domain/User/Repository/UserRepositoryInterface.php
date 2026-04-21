@@ -6,8 +6,8 @@ use App\Domain\User\Entity\User;
 use App\Domain\User\ValueObject\Email;
 
 interface UserRepositoryInterface{
-    
-    public function save(User $user): void;
+
+    public function save(User $user): int;
 
     public function findByEmail(Email $email): ?User;
 

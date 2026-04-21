@@ -5,21 +5,22 @@ namespace App\Domain\Exceptions;
 use App\Exceptions\DomainException;
 use Illuminate\Http\Response;
 
-class EmailAlreadyInUseException extends DomainException{
+class InvalidAutenticationException extends DomainException{
+
     public function __construct(string $message = ""){
-        $message = !empty($message) ? $message : $this->getDefaultMessage();
-        parent::__construct();
+        $defaultMessage = !empty($message) ? $message : $this->getDefaultMessage();
+        parent::__construct($defaultMessage);
     }
 
     protected function getDefaultMessage(): string{
-        return "Email já está em uso";
+        return "Usuário e/ou senha incorretos.";
     }
 
     protected function getDefaultErrorCode(): string{
-        return "EMAIL_IN_USE";
+        return "INVALID_AUTENTICATION";
     }
 
     protected function getDefaultHttpStatusCode(): int{
-        return Response::HTTP_CONFLICT;
+        return Response::HTTP_UNAUTHORIZED;
     }
 }

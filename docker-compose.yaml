@@ -17,10 +17,32 @@ services:
     build:
       context: ./auth-service
       dockerfile: Dockerfile
+      target: development
     env_file: ./auth-service/.env
+    depends_on:
+      db-auth:
+        condition: service_healthy
     volumes:
       - ./auth-service:/var/www
       - /var/www/vendor
+    networks:
+      - app-network
+
+  db-auth:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: auth
+      POSTGRES_USER: ${POSTGRES_USER_AUTH}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_AUTH}
+    volumes:
+      - auth_data:/var/lib/postgresql/data
+    ports:
+      - 5436:5432
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER_AUTH} -d auth" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - app-network
     
@@ -149,6 +171,7 @@ volumes:
   inventory_data:
   order_data:
   payment_data:
+  auth_data:
 
 networks:
   app-network:
