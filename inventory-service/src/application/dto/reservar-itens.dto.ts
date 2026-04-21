@@ -10,7 +10,8 @@ export const reservarItensSchema = z.object({
       quantidade: z.number({ error: 'Quantidade inválida' })
         .int('Quantidade de itens precisa ser inteira')
         .positive('Quantidade inválida'),
-    }),
+    })
+      .default({} as any),
   )
     .min(1),
 })

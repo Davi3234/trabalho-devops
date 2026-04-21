@@ -5,9 +5,9 @@ export const consultarDisponibilidadeSchema = z.object({
     z.number({ error: 'Id do Pedido Inválido' })
       .positive('Id do Pedido Inválido')
   )
-    .min(1)
     .max(100),
 })
+  .default({} as any)
 
 export type ConsultarDisponibilidadeInput = z.infer<typeof consultarDisponibilidadeSchema>
 
