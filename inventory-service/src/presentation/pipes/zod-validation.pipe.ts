@@ -1,5 +1,7 @@
-import { BadRequestException, PipeTransform } from '@nestjs/common'
+import { PipeTransform } from '@nestjs/common'
 import { z } from 'zod'
+
+import { ValidatorException } from '@shared/exceptions/validator.exception'
 
 export class ZodValidationPipe<T extends z.ZodTypeAny> implements PipeTransform {
 
@@ -11,12 +13,12 @@ export class ZodValidationPipe<T extends z.ZodTypeAny> implements PipeTransform 
     const result = this.schema.safeParse(value)
 
     if (!result.success) {
-      const errors = result.error.issues.map(cause => ({
+      const causes = result.error.issues.map(cause => ({
         field: cause.path.join('.'),
         message: cause.message,
       }))
 
-      throw new BadRequestException({ message: 'Dados inválidos', errors })
+      throw new ValidatorException('Dados inválidos', { causes })
     }
 
     return result.data
