@@ -8,6 +8,8 @@ RUN npm ci
 
 COPY . .
 
+RUN npm run test
+
 RUN npm run build
 
 FROM node:20-slim as production
