@@ -2,8 +2,6 @@
 
 namespace App\Interfaces\Http\Request;
 
-use Illuminate\Foundation\Http\FormRequest;
-
 class RegisterRequest extends FormRequest{
 
     /**
@@ -32,15 +30,15 @@ class RegisterRequest extends FormRequest{
      */
     public function messages(): array{
         return [
-            'name.required' => 'Name is required',
-            'name.string' => 'Name must be a string',
-            'name.max' => 'Name must not exceed 255 characters',
-            'email.required' => 'Email is required',
-            'email.email' => 'Email must be a valid email address',
-            'email.unique' => 'Email is already registered',
-            'password.required' => 'Password is required',
-            'password.min' => 'Password must be at least 6 characters',
-            'password.confirmed' => 'Password confirmation does not match',
+            'name.required' => 'Nome é obrigatório',
+            'name.string' => 'Nome precisa conter letras',
+            'name.max' => 'Nome não pode ultrapassar 255 caracteres',
+            'email.required' => 'Email é obrigatório',
+            'email.email' => 'Email precisa ser um email válido',
+            'email.unique' => 'Email já está em uso',
+            'password.required' => 'Senha é obrigatório',
+            'password.min' => 'Senha precisa ter pelo menos 6 caracteres',
+            'password.confirmed' => 'Confirmação de senha não confere',
         ];
     }
 }

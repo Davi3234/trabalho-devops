@@ -37,10 +37,10 @@ class RegisterUserHandler{
             $password
         );
 
-        $this->userRepository->save($user);
+        $id = $this->userRepository->save($user);
 
         return new RegisterUserResponseDTO(
-            $user->id(),
+            $id,
             $user->email()->value(),
             $user->name()
         );
