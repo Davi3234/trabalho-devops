@@ -45,7 +45,7 @@ export class PrismaReservaRepository implements IReservaRepository {
   async findExpiradas() {
     const rows = await this.prisma.reserva.findMany({
       where: {
-        status: 'pendente',
+        status: StatusReserva.PENDENTE,
         expiradoEm: { lt: new Date() },
       },
       include: includeItens
