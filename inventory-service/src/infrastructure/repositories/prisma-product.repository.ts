@@ -63,9 +63,21 @@ export class PrismaProdutoRepository implements IProdutoRepository {
         })
 
         if (result.count === 0) {
-          this.logger.warn(`Conflito de concorrência ao salvar produto ${produto.id} (version ${produto.version}). Outro processo atualizou este registro simultaneamente.`)
-
-          throw new CriticalException(`Conflito de concorrência detectado para produto ${produto.id}. A reserva foi rejeitada — tente novamente.`)
+          try {
+            await tx.produto.create({
+              data: {
+                id: produto.id,
+                quantidadeTotal: produto.quantidadeTotal.quantidade,
+                quantidadeReservada: produto.quantidadeReservada.quantidade,
+                version: 1,
+                criadoEm: produto.criadoEm,
+                atualizadoEm: produto.atualizadoEm,
+              },
+            })
+          } catch (error: any) {
+            this.logger.warn(`Erro ao inserir produto ${produto.id}: ${error.message}`)
+            throw new CriticalException(`Erro ao salvar produto ${produto.id}. Tente novamente.`)
+          }
         }
       }
     })
