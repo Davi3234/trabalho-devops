@@ -289,6 +289,7 @@ export type ProdutoScalarWhereWithAggregatesInput = {
 }
 
 export type ProdutoCreateInput = {
+  id: number
   quantidadeTotal?: number
   quantidadeReservada?: number
   version?: number
@@ -298,7 +299,7 @@ export type ProdutoCreateInput = {
 }
 
 export type ProdutoUncheckedCreateInput = {
-  id?: number
+  id: number
   quantidadeTotal?: number
   quantidadeReservada?: number
   version?: number
@@ -308,6 +309,7 @@ export type ProdutoUncheckedCreateInput = {
 }
 
 export type ProdutoUpdateInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
   quantidadeTotal?: Prisma.IntFieldUpdateOperationsInput | number
   quantidadeReservada?: Prisma.IntFieldUpdateOperationsInput | number
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -327,7 +329,7 @@ export type ProdutoUncheckedUpdateInput = {
 }
 
 export type ProdutoCreateManyInput = {
-  id?: number
+  id: number
   quantidadeTotal?: number
   quantidadeReservada?: number
   version?: number
@@ -336,6 +338,7 @@ export type ProdutoCreateManyInput = {
 }
 
 export type ProdutoUpdateManyMutationInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
   quantidadeTotal?: Prisma.IntFieldUpdateOperationsInput | number
   quantidadeReservada?: Prisma.IntFieldUpdateOperationsInput | number
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -425,6 +428,7 @@ export type ProdutoUpdateOneRequiredWithoutItensReservaNestedInput = {
 }
 
 export type ProdutoCreateWithoutItensReservaInput = {
+  id: number
   quantidadeTotal?: number
   quantidadeReservada?: number
   version?: number
@@ -433,7 +437,7 @@ export type ProdutoCreateWithoutItensReservaInput = {
 }
 
 export type ProdutoUncheckedCreateWithoutItensReservaInput = {
-  id?: number
+  id: number
   quantidadeTotal?: number
   quantidadeReservada?: number
   version?: number
@@ -458,6 +462,7 @@ export type ProdutoUpdateToOneWithWhereWithoutItensReservaInput = {
 }
 
 export type ProdutoUpdateWithoutItensReservaInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
   quantidadeTotal?: Prisma.IntFieldUpdateOperationsInput | number
   quantidadeReservada?: Prisma.IntFieldUpdateOperationsInput | number
   version?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1216,7 +1221,7 @@ export type ProdutoCreateArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   /**
    * The data needed to create a Produto.
    */
-  data?: Prisma.XOR<Prisma.ProdutoCreateInput, Prisma.ProdutoUncheckedCreateInput>
+  data: Prisma.XOR<Prisma.ProdutoCreateInput, Prisma.ProdutoUncheckedCreateInput>
 }
 
 /**
