@@ -144,18 +144,6 @@ services:
     networks:
       - app-network
 
-  payment-nginx:
-    image: nginx:alpine
-    ports:
-      - 5002:5002
-    volumes:
-      - ./payment-service:/var/www:ro
-      - ./api-gateway/payment.conf:/etc/nginx/conf.d/default.conf:ro
-    depends_on:
-      - payment-service
-    networks:
-      - app-network
-
   inventory-service.cache:
     image: redis:latest
     environment:
@@ -166,6 +154,18 @@ services:
       redis-server --requirepass ${REDIS_PASSWORD_INVENTORY}
     volumes:
       - redis_data:/data
+    networks:
+      - app-network
+
+  payment-nginx:
+    image: nginx:alpine
+    ports:
+      - 5002:5002
+    volumes:
+      - ./payment-service:/var/www:ro
+      - ./api-gateway/payment.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - payment-service
     networks:
       - app-network
 
@@ -189,7 +189,6 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    env_file: ./.env.order-service
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
