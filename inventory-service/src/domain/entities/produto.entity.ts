@@ -5,7 +5,6 @@ export const NIVEL_CRITICO_THRESHOLD = 5
 
 export interface ProdutoProps {
   id: number
-  nome: string
   quantidadeTotal: EstoqueProduto
   quantidadeReservada: EstoqueProduto
   version: number
@@ -15,7 +14,6 @@ export interface ProdutoProps {
 
 export interface ProdutoCreateArgs {
   id?: number
-  nome: string
   quantidadeTotal: EstoqueProduto
   version?: number
 }
@@ -25,7 +23,6 @@ export class Produto {
   private readonly props: ProdutoProps
 
   get id() { return this.props.id }
-  get nome() { return this.props.nome }
 
   get quantidadeTotal() { return this.props.quantidadeTotal }
   get quantidadeReservada() { return this.props.quantidadeReservada }
@@ -43,7 +40,6 @@ export class Produto {
   static create(args: ProdutoCreateArgs) {
     return new Produto({
       id: args.id ?? Date.now(),
-      nome: args.nome,
       quantidadeTotal: args.quantidadeTotal,
       quantidadeReservada: EstoqueProduto.zero(),
       version: args.version ?? 0,

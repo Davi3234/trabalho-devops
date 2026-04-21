@@ -7,7 +7,6 @@ import { CriticalException } from '@shared/exceptions/critical.exception'
 
 interface ProdutoDatabase {
   id: number
-  nome: string
   quantidadeTotal: number
   quantidadeReservada: number
   version: number
@@ -75,7 +74,6 @@ export class PrismaProdutoRepository implements IProdutoRepository {
   private toDomain(row: ProdutoDatabase): Produto {
     return Produto.reconstitute({
       id: row.id,
-      nome: row.nome,
       quantidadeTotal: EstoqueProduto.create(row.quantidadeTotal),
       quantidadeReservada: EstoqueProduto.create(row.quantidadeReservada),
       version: row.version,
