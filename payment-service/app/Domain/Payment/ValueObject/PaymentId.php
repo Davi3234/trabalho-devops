@@ -19,4 +19,8 @@ class PaymentId{
     public function __toString(): string{
         return $this->value;
     }
+
+    public function equals(PaymentId $other): bool{
+        return $this->value === $other->value;
+    }
 }
