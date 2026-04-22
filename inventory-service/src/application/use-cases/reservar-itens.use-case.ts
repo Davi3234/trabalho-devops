@@ -90,10 +90,10 @@ export class ReservarItensUseCase {
       }
     }
 
-    const reserva = Reserva.create(pedidoId, itensReserva)
+    const reservaToSave = Reserva.create(pedidoId, itensReserva)
 
     await this.produtoRepository.saveMany(produtosAlterados)
-    await this.reservaRepository.save(reserva)
+    const reserva = await this.reservaRepository.save(reservaToSave)
 
     const eventos = [
       new EstoqueReservadoEvent(

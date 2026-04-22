@@ -46,7 +46,7 @@ export class Reserva {
     const expiradoEm = new Date(now.getTime() + RESERVA_TIMEOUT_MINUTOS * 60 * 1000)
 
     return new Reserva({
-      id: Date.now(),
+      id: null as any,
       pedidoId,
       itens,
       status: StatusReserva.PENDENTE,
@@ -84,5 +84,9 @@ export class Reserva {
     this.props.status = status
     this.props.atualizadoEm = new Date()
     this.state = ReservaStatusFabric.create(status)
+  }
+
+  toJSON() {
+    return { ...this.props }
   }
 }

@@ -95,7 +95,7 @@ describe('ReservarItensUseCase', () => {
         makeProduto(PRODUTO_ID_A, 50),
         makeProduto(PRODUTO_ID_B, 30),
       ])
-      vi.mocked(reservaRepo.save).mockResolvedValue()
+      vi.mocked(reservaRepo.save).mockImplementation(async reserva => Reserva.reconstitute({ ...reserva.toJSON(), id: Date.now() }))
       vi.mocked(produtoRepo.saveMany).mockResolvedValue()
 
       const result = await useCase.execute({
@@ -119,7 +119,7 @@ describe('ReservarItensUseCase', () => {
 
       vi.mocked(produtoRepo.findByIds).mockResolvedValue([makeProduto(PRODUTO_ID_A, 20)])
       vi.mocked(produtoRepo.saveMany).mockResolvedValue()
-      vi.mocked(reservaRepo.save).mockResolvedValue()
+      vi.mocked(reservaRepo.save).mockImplementation(async reserva => Reserva.reconstitute({ ...reserva.toJSON(), id: Date.now() }))
 
       await useCase.execute({
         pedidoId: PEDIDO_ID,
@@ -228,7 +228,7 @@ describe('ReservarItensUseCase', () => {
         makeProduto(PRODUTO_ID_A, 10, 6),
       ])
       vi.mocked(produtoRepo.saveMany).mockResolvedValue()
-      vi.mocked(reservaRepo.save).mockResolvedValue()
+      vi.mocked(reservaRepo.save).mockImplementation(async reserva => Reserva.reconstitute({ ...reserva.toJSON(), id: Date.now() }))
 
       await useCase.execute({
         pedidoId: PEDIDO_ID,
@@ -247,7 +247,7 @@ describe('ReservarItensUseCase', () => {
         makeProduto(PRODUTO_ID_A, 100, 0),
       ])
       vi.mocked(produtoRepo.saveMany).mockResolvedValue()
-      vi.mocked(reservaRepo.save).mockResolvedValue()
+      vi.mocked(reservaRepo.save).mockImplementation(async reserva => Reserva.reconstitute({ ...reserva.toJSON(), id: Date.now() }))
 
       await useCase.execute({
         pedidoId: PEDIDO_ID,
