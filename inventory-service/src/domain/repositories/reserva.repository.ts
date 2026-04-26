@@ -7,6 +7,6 @@ export interface IReservaRepository {
   findByPedidoId(pedidoId: PedidoId): Promise<Reserva | null>
   findExpiradas(): Promise<Reserva[]>
 
-  save(reserva: Reserva): Promise<void>
+  save(reserva: Reserva): Promise<Reserva>
   isPedidoReservado(pedidoId: PedidoId): Promise<boolean>
 }

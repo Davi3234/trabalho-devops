@@ -58,20 +58,20 @@ export class PrismaReservaRepository implements IReservaRepository {
     const pedidoExistente = await this.isPedidoReservado(reserva.pedidoId)
 
     if (pedidoExistente) {
-      await this.prisma.reserva.update({
+      const row = await this.prisma.reserva.update({
         where: { pedidoId: reserva.pedidoId.id },
         data: {
           status: reserva.status as StatusReservaDatabase,
           atualizadoEm: reserva.atualizadoEm,
-        }
+        },
+        include: includeItens
       })
 
-      return
+      return this.toDomain(row)
     }
 
-    await this.prisma.reserva.create({
+    const row = await this.prisma.reserva.create({
       data: {
-        id: reserva.id,
         pedidoId: reserva.pedidoId.id,
         status: reserva.status as StatusReservaDatabase,
         criadoEm: reserva.criadoEm,
@@ -83,8 +83,11 @@ export class PrismaReservaRepository implements IReservaRepository {
             quantidade: item.quantidade.quantidade,
           }))
         }
-      }
+      },
+      include: includeItens
     })
+
+    return this.toDomain(row)
   }
 
   private toDomain(row: ReservaDatabase): Reserva {

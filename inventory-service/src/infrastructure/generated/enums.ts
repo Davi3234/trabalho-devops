@@ -11,9 +11,9 @@
 
 export const StatusReserva = {
   pendente: 'pendente',
-  confirmada: 'confirmada',
-  estornada: 'estornada',
-  expirada: 'expirada'
+  confirmado: 'confirmado',
+  estornado: 'estornado',
+  expirado: 'expirado'
 } as const
 
 export type StatusReserva = (typeof StatusReserva)[keyof typeof StatusReserva]
