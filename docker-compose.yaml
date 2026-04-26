@@ -92,7 +92,11 @@ services:
     volumes:
       - order_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER_ORDER} -d ${POSTGRES_URL_ORDER}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER_ORDER} -d ${POSTGRES_URL_ORDER}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -100,7 +104,7 @@ services:
       - app-network
 
   inventory-service:
-    build: 
+    build:
       context: ./inventory-service
     volumes:
       - ./inventory-service:/usr/src/app
@@ -123,7 +127,7 @@ services:
     ports:
       - 5434:5432
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER_INVENTORY} -d inventory"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER_INVENTORY} -d inventory" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -167,7 +171,7 @@ services:
     ports:
       - 5435:5432
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER_PAYMENT} -d payment"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER_PAYMENT} -d payment" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -199,7 +203,7 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
       - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      test: [ "CMD", "rabbitmq-diagnostics", "check_port_connectivity" ]
       interval: 10s
       timeout: 5s
       retries: 5
