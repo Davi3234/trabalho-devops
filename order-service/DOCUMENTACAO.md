@@ -182,17 +182,17 @@ Base URL: `http://localhost:8080/api/orders`
 
 ```json
 {
-  "customerId": 456,
-  "shippingCost": 10.0,
-  "couponCode": "DESCONTO10",
-  "items": [
-    {
-      "productId": 123,
-      "productName": "Produto A",
-      "unitPrice": 50.0,
-      "quantity": 2
-    }
-  ]
+    "customerId": 456,
+    "shippingCost": 10.0,
+    "couponCode": "DESCONTO10",
+    "items": [
+        {
+            "productId": 123,
+            "productName": "Produto A",
+            "unitPrice": 50.0,
+            "quantity": 2
+        }
+    ]
 }
 ```
 
@@ -279,9 +279,9 @@ Base URL: `http://localhost:8080/api/orders`
 
 ```json
 {
-  "timestamp": "2026-04-19T10:30:00",
-  "status": 404,
-  "error": "Pedido não encontrado: 99"
+    "timestamp": "2026-04-19T10:30:00",
+    "status": 404,
+    "error": "Pedido não encontrado: 99"
 }
 ```
 
@@ -289,13 +289,13 @@ Para erros de validação (`400`), o campo `details` contém um mapa com os camp
 
 ```json
 {
-  "timestamp": "2026-04-19T10:30:00",
-  "status": 400,
-  "error": "Erro de validação",
-  "details": {
-    "customerId": "customerId é obrigatório",
-    "shippingCost": "shippingCost é obrigatório"
-  }
+    "timestamp": "2026-04-19T10:30:00",
+    "status": 400,
+    "error": "Erro de validação",
+    "details": {
+        "customerId": "customerId é obrigatório",
+        "shippingCost": "shippingCost é obrigatório"
+    }
 }
 ```
 
@@ -325,21 +325,21 @@ Para erros de validação (`400`), o campo `details` contém um mapa com os camp
 
 ```json
 {
-  "orderId": 1,
-  "customerId": 456,
-  "status": "PENDENTE",
-  "totalAmount": 110.0,
-  "shippingCost": 10.0,
-  "discount": 0.0,
-  "couponCode": null,
-  "items": [
-    {
-      "productId": 123,
-      "productName": "Produto A",
-      "quantity": 2,
-      "unitPrice": 50.0
-    }
-  ]
+    "orderId": 1,
+    "customerId": 456,
+    "status": "PENDENTE",
+    "totalAmount": 110.0,
+    "shippingCost": 10.0,
+    "discount": 0.0,
+    "couponCode": null,
+    "items": [
+        {
+            "productId": 123,
+            "productName": "Produto A",
+            "quantity": 2,
+            "unitPrice": 50.0
+        }
+    ]
 }
 ```
 
@@ -517,15 +517,15 @@ Em ambiente de teste (`@ActiveProfiles("test")`):
 
 ### Variáveis de ambiente (`.env.order-service`)
 
-| Variável                  | Descrição                      |
-| ------------------------- | ------------------------------ |
-| `POSTGRES_URL_ORDER`      | Nome do banco PostgreSQL       |
-| `POSTGRES_USER_ORDER`     | Usuário do banco               |
-| `POSTGRES_PASSWORD_ORDER` | Senha do banco                 |
-| `RABBITMQ_HOST`           | Host do broker RabbitMQ        |
-| `RABBITMQ_PORT`           | Porta do broker (padrão: 5672) |
-| `RABBITMQ_USERNAME`       | Usuário do RabbitMQ            |
-| `RABBITMQ_PASSWORD`       | Senha do RabbitMQ              |
+| Variável            | Descrição                      |
+| ------------------- | ------------------------------ |
+| `POSTGRES_URL`      | Nome do banco PostgreSQL       |
+| `POSTGRES_USER`     | Usuário do banco               |
+| `POSTGRES_PASSWORD` | Senha do banco                 |
+| `RABBITMQ_HOST`     | Host do broker RabbitMQ        |
+| `RABBITMQ_PORT`     | Porta do broker (padrão: 5672) |
+| `RABBITMQ_USERNAME` | Usuário do RabbitMQ            |
+| `RABBITMQ_PASSWORD` | Senha do RabbitMQ              |
 
 ### Executar com Docker Compose
 
