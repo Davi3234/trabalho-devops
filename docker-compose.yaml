@@ -61,6 +61,8 @@ services:
   order-service:
     build:
       context: ./order-service
+    env_file:
+      - ./order-service/.env.order-service
     environment:
       DB_URL: jdbc:postgresql://db-order:5432/${POSTGRES_URL_ORDER}
       DB_USERNAME: ${POSTGRES_USER_ORDER}
@@ -82,7 +84,7 @@ services:
   db-order:
     image: postgres:16-alpine
     restart: always
-    env_file: ./.env.order-service
+    env_file: ./order-service/.env.order-service
     environment:
       POSTGRES_DB: ${POSTGRES_URL_ORDER}
       POSTGRES_USER: ${POSTGRES_USER_ORDER}
@@ -106,9 +108,7 @@ services:
   inventory-service:
     build:
       context: ./inventory-service
-    volumes:
-      - ./inventory-service:/usr/src/app
-      - /usr/src/app/node_modules
+    env_file: ./inventory-service/.env
     depends_on:
       - db-inventory
     ports:

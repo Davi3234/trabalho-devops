@@ -246,7 +246,7 @@ describe('EntradaEstoqueUseCase', () => {
       const produtoA = makeProduto(PRODUTO_ID_A, 100)
       const produtoB = makeProduto(PRODUTO_ID_B, 200)
 
-      vi.mocked(produtoRepo.findByIds).mockResolvedValueOnce([produtoB, produtoA]) // Ordem diferente
+      vi.mocked(produtoRepo.findByIds).mockResolvedValueOnce([produtoB, produtoA])
 
       await useCase.execute({
         itens: [
