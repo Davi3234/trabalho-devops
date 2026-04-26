@@ -2,7 +2,7 @@ import z from 'zod'
 
 export const consultarDisponibilidadeSchema = z.object({
   produtoIds: z.array(
-    z.number({ error: 'Id do Pedido Inválido' })
+    z.number({ error: 'Id do Pedido é obrigatório' })
       .positive('Id do Pedido Inválido')
   )
     .max(100, 'Deve haver no máximo 100 itens')
