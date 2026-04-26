@@ -127,7 +127,7 @@ services:
     networks:
       - app-network
 
-  inventory-service.cache:
+  cache-inventory:
     image: redis:latest
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD_INVENTORY}
