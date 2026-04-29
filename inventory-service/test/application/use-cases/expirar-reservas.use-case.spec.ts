@@ -22,7 +22,7 @@ function makeReservaPendente(pedidoId: number, quantidade: number): Reserva {
     quantidade: EstoqueProduto.create(quantidade),
   })
 
-  return Reserva.criar(PedidoId.create(pedidoId), [item])
+  return Reserva.create(PedidoId.create(pedidoId), [item])
 }
 
 function makeProduto(reservado: number): Produto {
@@ -87,7 +87,7 @@ describe('ExpirarReservasUseCase', () => {
     vi.mocked(reservaRepo.findExpiradas).mockResolvedValue([reservaA, reservaB])
     vi.mocked(produtoRepo.findByIds).mockResolvedValue([makeProduto(15)])
     vi.mocked(produtoRepo.saveMany).mockResolvedValue()
-    vi.mocked(reservaRepo.save).mockResolvedValue()
+    vi.mocked(reservaRepo.save).mockImplementation(async reserva => Reserva.reconstitute({ ...reserva.toJSON(), id: Date.now() }))
 
     const result = await useCase.execute()
 
@@ -102,7 +102,7 @@ describe('ExpirarReservasUseCase', () => {
     vi.mocked(reservaRepo.findExpiradas).mockResolvedValue([reserva])
     vi.mocked(produtoRepo.findByIds).mockResolvedValue([makeProduto(5)])
     vi.mocked(produtoRepo.saveMany).mockResolvedValue()
-    vi.mocked(reservaRepo.save).mockResolvedValue()
+    vi.mocked(reservaRepo.save).mockImplementation(async reserva => Reserva.reconstitute({ ...reserva.toJSON(), id: Date.now() }))
 
     await useCase.execute()
 
@@ -117,7 +117,7 @@ describe('ExpirarReservasUseCase', () => {
     vi.mocked(reservaRepo.findExpiradas).mockResolvedValue([reserva])
     vi.mocked(produtoRepo.findByIds).mockResolvedValue([makeProduto(5)])
     vi.mocked(produtoRepo.saveMany).mockResolvedValue()
-    vi.mocked(reservaRepo.save).mockResolvedValue()
+    vi.mocked(reservaRepo.save).mockImplementation(async reserva => Reserva.reconstitute({ ...reserva.toJSON(), id: Date.now() }))
 
     await useCase.execute()
 
@@ -139,7 +139,7 @@ describe('ExpirarReservasUseCase', () => {
       .mockResolvedValueOnce([makeProduto(3)])
 
     vi.mocked(produtoRepo.saveMany).mockResolvedValue()
-    vi.mocked(reservaRepo.save).mockResolvedValue()
+    vi.mocked(reservaRepo.save).mockImplementation(async reserva => Reserva.reconstitute({ ...reserva.toJSON(), id: Date.now() }))
 
     const result = await useCase.execute()
 

@@ -48,7 +48,7 @@ model ItemReserva {
 
 enum StatusReserva {
   pendente
-  confirmada
-  estornada
-  expirada
+  confirmado
+  estornado
+  expirado
 }
