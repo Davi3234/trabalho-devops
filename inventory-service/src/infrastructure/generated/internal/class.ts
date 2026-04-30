@@ -17,10 +17,10 @@ import type * as Prisma from "./prismaNamespace"
 
 const config: runtime.GetPrismaClientConfig = {
   "previewFeatures": [],
-  "clientVersion": "7.7.0",
-  "engineVersion": "75cbdc1eb7150937890ad5465d861175c6624711",
+  "clientVersion": "7.8.0",
+  "engineVersion": "3c6e192761c0362d496ed980de936e2f3cebcd3a",
   "activeProvider": "postgresql",
-  "inlineSchema": "datasource db {\n  provider = \"postgresql\"\n}\n\ngenerator client {\n  provider = \"prisma-client\"\n  output   = \"../src/infrastructure/generated\"\n}\n\nmodel Produto {\n  id                  Int      @id\n  quantidadeTotal     Int      @default(0) @map(\"quantidade_total\")\n  quantidadeReservada Int      @default(0) @map(\"quantidade_reservada\")\n  version             Int      @default(0)\n  criadoEm            DateTime @default(now()) @map(\"criado_em\")\n  atualizadoEm        DateTime @default(now()) @updatedAt @map(\"atualizado_em\")\n\n  itensReserva ItemReserva[]\n\n  @@map(\"produtos\")\n}\n\nmodel Reserva {\n  id           Int           @id @default(autoincrement())\n  pedidoId     Int           @unique @map(\"pedido_id\")\n  status       StatusReserva @default(pendente)\n  criadoEm     DateTime      @default(now()) @map(\"criado_em\")\n  expiradoEm   DateTime      @map(\"expirado_em\")\n  atualizadoEm DateTime      @default(now()) @updatedAt @map(\"atualizado_em\")\n\n  itens ItemReserva[]\n\n  @@index([status, expiradoEm])\n  @@map(\"reservas\")\n}\n\nmodel ItemReserva {\n  id         Int @id @default(autoincrement())\n  reservaId  Int @map(\"reserva_id\")\n  produtoId  Int @map(\"produto_id\")\n  quantidade Int\n\n  reserva Reserva @relation(fields: [reservaId], references: [id])\n  produto Produto @relation(fields: [produtoId], references: [id])\n\n  @@map(\"itens_reserva\")\n}\n\nenum StatusReserva {\n  pendente\n  confirmada\n  estornada\n  expirada\n}\n",
+  "inlineSchema": "datasource db {\n  provider = \"postgresql\"\n}\n\ngenerator client {\n  provider = \"prisma-client\"\n  output   = \"../src/infrastructure/generated\"\n}\n\nmodel Produto {\n  id                  Int      @id\n  quantidadeTotal     Int      @default(0) @map(\"quantidade_total\")\n  quantidadeReservada Int      @default(0) @map(\"quantidade_reservada\")\n  version             Int      @default(0)\n  criadoEm            DateTime @default(now()) @map(\"criado_em\")\n  atualizadoEm        DateTime @default(now()) @updatedAt @map(\"atualizado_em\")\n\n  itensReserva ItemReserva[]\n\n  @@map(\"produtos\")\n}\n\nmodel Reserva {\n  id           Int           @id @default(autoincrement())\n  pedidoId     Int           @unique @map(\"pedido_id\")\n  status       StatusReserva @default(pendente)\n  criadoEm     DateTime      @default(now()) @map(\"criado_em\")\n  expiradoEm   DateTime      @map(\"expirado_em\")\n  atualizadoEm DateTime      @default(now()) @updatedAt @map(\"atualizado_em\")\n\n  itens ItemReserva[]\n\n  @@index([status, expiradoEm])\n  @@map(\"reservas\")\n}\n\nmodel ItemReserva {\n  id         Int @id @default(autoincrement())\n  reservaId  Int @map(\"reserva_id\")\n  produtoId  Int @map(\"produto_id\")\n  quantidade Int\n\n  reserva Reserva @relation(fields: [reservaId], references: [id])\n  produto Produto @relation(fields: [produtoId], references: [id])\n\n  @@map(\"itens_reserva\")\n}\n\nenum StatusReserva {\n  pendente\n  confirmado\n  estornado\n  expirado\n}\n",
   "runtimeDataModel": {
     "models": {},
     "enums": {},
@@ -180,7 +180,7 @@ export interface PrismaClient<
    * 
    * Read more in our [docs](https://www.prisma.io/docs/orm/prisma-client/queries/transactions).
    */
-  $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P], options?: { isolationLevel?: Prisma.TransactionIsolationLevel }): runtime.Types.Utils.JsPromise<runtime.Types.Utils.UnwrapTuple<P>>
+  $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P], options?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }): runtime.Types.Utils.JsPromise<runtime.Types.Utils.UnwrapTuple<P>>
 
   $transaction<R>(fn: (prisma: Omit<PrismaClient, runtime.ITXClientDenyList>) => runtime.Types.Utils.JsPromise<R>, options?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }): runtime.Types.Utils.JsPromise<R>
 

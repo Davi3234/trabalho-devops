@@ -3,9 +3,9 @@ import { z } from 'zod'
 export const entradaEstoqueSchema = z.object({
   itens: z.array(
     z.object({
-      produtoId: z.number({ error: 'Id do Produto inválido' })
+      produtoId: z.number({ error: 'Id do Produto é obrigatório' })
         .positive('Id do Produto inválido'),
-      quantidade: z.number({ error: 'Quantidade inválida' })
+      quantidade: z.number({ error: 'Quantidade é obrigatório' })
         .int('Quantidade de itens precisa ser inteira')
         .positive('Quantidade deve ser maior que zero'),
     })

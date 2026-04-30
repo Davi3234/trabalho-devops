@@ -16,3 +16,8 @@
 $router->get('/', function () use ($router) {
     return $router->app->version();
 });
+
+$router->group(['namespace' => '\App\Interfaces\Http\Controller'], function () use ($router) {
+    $router->post('/process', 'PaymentController@process');
+    $router->post('/events/stock-reserved', 'PaymentController@handleStockReserved');
+});

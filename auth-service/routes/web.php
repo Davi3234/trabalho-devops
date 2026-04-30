@@ -21,10 +21,9 @@ $router->group(['namespace' => '\App\Interfaces\Http\Controller'], function () u
     $router->post('/login', 'AuthController@login');
     $router->post('/register', 'AuthController@register');
     $router->get('/validate-token', 'AuthController@validateToken');
-});
 
-// Rota protegida
-$router->group(['middleware' => 'auth'], function () use ($router) {
-    $router->get('/profile', 'UserController@profile');
+    $router->group(['middleware' => 'auth'], function () use ($router) {
+        $router->get('/profile', 'UserController@profile');
+    });
 });
 

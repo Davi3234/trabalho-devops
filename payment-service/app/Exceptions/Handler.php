@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use App\Domain\Exceptions\DomainException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
@@ -49,6 +50,14 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $exception)
     {
+        if ($exception instanceof DomainException) {
+            return response()->json([
+                'success' => false,
+                'message' => $exception->getMessage(),
+                'error' => $exception->getErrorCode(),
+            ], $exception->getHttpStatus());
+        }
+
         return parent::render($request, $exception);
     }
 }

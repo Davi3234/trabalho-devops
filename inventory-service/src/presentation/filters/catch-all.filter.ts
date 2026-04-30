@@ -1,5 +1,6 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common'
 import { HttpAdapterHost } from '@nestjs/core'
+import { ZodError } from 'zod'
 
 import { env } from '@shared/env'
 import { ApplicationException } from '@shared/exceptions/application.exception'
@@ -48,12 +49,22 @@ export class CatchAllExceptionFilter implements ExceptionFilter<Error> {
       return { message: exception.message }
     }
 
+    if (exception instanceof ZodError) {
+      const causes = exception.issues.map(cause => ({
+        field: cause.path.join('.'),
+        message: cause.message,
+      }))
+
+      return { message: 'Dados inválidos', causes }
+    }
+
     return { ...exception, message: exception?.message || 'Error' }
   }
 
   private static getStatusCode(exception: unknown) {
     if (exception instanceof ValidatorException) return HttpStatus.BAD_REQUEST
     if (exception instanceof BusinessException) return HttpStatus.BAD_REQUEST
+    if (exception instanceof ZodError) return HttpStatus.BAD_REQUEST
     if (exception instanceof CriticalException) return HttpStatus.INTERNAL_SERVER_ERROR
     if (exception instanceof HttpException) return exception.getStatus()
 
