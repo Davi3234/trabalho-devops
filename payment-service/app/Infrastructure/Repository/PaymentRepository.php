@@ -7,6 +7,7 @@ use App\Domain\Payment\Repository\PaymentRepositoryInterface;
 use App\Domain\Payment\ValueObject\PaymentId;
 use App\Domain\Payment\ValueObject\Amount;
 use App\Domain\Payment\ValueObject\PaymentMethod;
+use App\Infrastructure\Repository\PaymentModel;
 
 class PaymentRepository implements PaymentRepositoryInterface{
     public function save(Payment $payment): void{

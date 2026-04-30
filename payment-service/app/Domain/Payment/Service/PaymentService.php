@@ -9,6 +9,7 @@ use App\Domain\Payment\ValueObject\PaymentMethod;
 use App\Domain\Exceptions\PaymentFailedException;
 
 class PaymentService{
+
     private PaymentRepositoryInterface $paymentRepository;
     private PaymentGatewayInterface $paymentGateway;
 
@@ -55,7 +56,7 @@ class PaymentService{
                     $payment->fail($e->getMessage());
                     $this->paymentRepository->save($payment);
 
-                    throw new PaymentFailedException('Payment failed after retries: ' . $e->getMessage());
+                    throw new PaymentFailedException('Pagamento falhou: ' . $e->getMessage());
                 }
                 sleep($backoff[$attempts - 1] ?? 60);
             }
@@ -67,7 +68,7 @@ class PaymentService{
     public function refundPayment(string $orderId): void{
         $payment = $this->paymentRepository->findByOrderId($orderId);
         if (!$payment) {
-            throw new \Exception('Payment not found');
+            throw new \Exception('Pagamento não encontrado');
         }
 
         $this->paymentGateway->refund($payment->id()->value());

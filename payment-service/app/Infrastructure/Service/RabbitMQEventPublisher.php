@@ -12,10 +12,10 @@ class RabbitMQEventPublisher implements EventPublisherInterface{
 
     public function __construct(){
         $this->connection = new AMQPStreamConnection(
-            getenv('RABBITMQ_HOST') ?: 'rabbitmq',
-            getenv('RABBITMQ_PORT') ?: 5672,
-            getenv('RABBITMQ_USER') ?: 'guest',
-            getenv('RABBITMQ_PASSWORD') ?: 'guest'
+            getenv('RABBITMQ_HOST'),
+            getenv('RABBITMQ_PORT'),
+            getenv('RABBITMQ_USER'),
+            getenv('RABBITMQ_PASSWORD')
         );
         $this->channel = $this->connection->channel();
         $this->channel->exchange_declare('events', 'topic', false, false, false);

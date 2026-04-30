@@ -4,9 +4,9 @@ namespace App\Interfaces\Http\Controller;
 
 use App\Application\UseCase\ProcessPayment\ProcessPaymentDTO;
 use App\Application\UseCase\ProcessPayment\ProcessPaymentHandler;
-use App\Interfaces\Http\Request\ProcessPaymentRequest;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Validator;
 use Laravel\Lumen\Routing\Controller as BaseController;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -15,12 +15,23 @@ class PaymentController extends BaseController{
         private ProcessPaymentHandler $processPaymentHandler
     ) {}
 
-    public function process(ProcessPaymentRequest $request): JsonResponse{
+    public function process(Request $request): JsonResponse{
+        $data = $request->json()->all();
+
+        $request->merge($data); // Merge JSON data into request
+
+        Validator::make($request->all(), [
+            'order_id' => 'required|string',
+            'amount' => 'required|numeric|min:0.01',
+            'method' => 'required|in:credit_card,pix,boleto',
+            'payment_data' => 'sometimes|array',
+        ])->validate();
+
         $dto = new ProcessPaymentDTO(
-            $request->get('order_id'),
-            $request->get('amount'),
-            $request->get('method'),
-            $request->get('payment_data', [])
+            $request->input('order_id'),
+            $request->input('amount'),
+            $request->input('method'),
+            $request->input('payment_data', [])
         );
 
         $response = $this->processPaymentHandler->handle($dto);
@@ -35,7 +46,7 @@ class PaymentController extends BaseController{
     public function handleStockReserved(Request $request): JsonResponse{
         $orderId = $request->get('order_id');
         $amount = $request->get('amount');
-        $method = $request->get('method', 'credit_card'); // Default or from request
+        $method = $request->get('method', 'credit_card');
         $paymentData = $request->get('payment_data', []);
 
         $dto = new ProcessPaymentDTO($orderId, $amount, $method, $paymentData);

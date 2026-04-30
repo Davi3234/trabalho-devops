@@ -12,7 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('payments', function (Blueprint $table) {
-            $table->id();
+            $table->string('id')->primary();
+            $table->string('order_id');
+            $table->decimal('amount', 10, 2);
+            $table->string('method');
+            $table->string('status')->default('pending');
+            $table->text('gateway_response')->nullable();
             $table->timestamps();
         });
     }

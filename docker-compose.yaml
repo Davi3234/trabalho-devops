@@ -178,19 +178,6 @@ services:
     networks:
       - app-network
 
-  inventory-service.cache:
-    image: redis:latest
-    environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD_INVENTORY}
-    ports:
-      - 6379:6379
-    command: >
-      redis-server --requirepass ${REDIS_PASSWORD_INVENTORY}
-    volumes:
-      - redis_data:/data
-    networks:
-      - app-network
-
   rabbitmq:
     image: rabbitmq:3-management-alpine
     environment:
@@ -203,7 +190,7 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq
       - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
     healthcheck:
-      test: 
+      test:
         - CMD
         - rabbitmq-diagnostics
         - check_port_connectivity

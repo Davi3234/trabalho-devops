@@ -13,5 +13,6 @@ class AppServiceProvider extends ServiceProvider{
     public function register(){
         $this->app->bind(\App\Domain\Payment\Repository\PaymentRepositoryInterface::class, \App\Infrastructure\Repository\PaymentRepository::class);
         $this->app->bind(\App\Domain\Payment\Service\PaymentGatewayInterface::class, \App\Infrastructure\Service\MockPaymentGateway::class);
+        $this->app->bind(\App\Domain\Shared\Service\EventPublisherInterface::class, \App\Infrastructure\Service\RabbitMQEventPublisher::class);
     }
 }

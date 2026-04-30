@@ -2,7 +2,6 @@
 
 namespace App\Domain\Shared\Service;
 
-interface EventPublisherInterface
-{
+interface EventPublisherInterface{
     public function publish(string $event, array $data): void;
 }

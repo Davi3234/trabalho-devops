@@ -9,6 +9,9 @@ class Amount{
         if ($value < 0) {
             throw new \InvalidArgumentException('Valor não pode ser negativo');
         }
+        if ($value > 999999.99) {
+            throw new \InvalidArgumentException('Valor muito alto');
+        }
         $this->value = $value;
     }
 

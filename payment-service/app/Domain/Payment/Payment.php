@@ -2,6 +2,7 @@
 
 namespace App\Domain\Payment;
 
+use App\Domain\Payment\ValueObject\EnumPayment;
 use App\Domain\Payment\ValueObject\PaymentId;
 use App\Domain\Payment\ValueObject\Amount;
 use App\Domain\Payment\ValueObject\PaymentMethod;
@@ -11,7 +12,7 @@ class Payment{
     private string $orderId;
     private Amount $amount;
     private PaymentMethod $method;
-    private string $status; // pending, confirmed, failed, refunded
+    private string $status;
     private ?string $gatewayResponse;
     private \DateTime $createdAt;
     private ?\DateTime $updatedAt;
@@ -26,7 +27,8 @@ class Payment{
         $this->orderId = $orderId;
         $this->amount = $amount;
         $this->method = $method;
-        $this->status = 'pending';
+        $this->status = EnumPayment::PAYMENT_STATUS_PENDING;
+        $this->gatewayResponse = null;
         $this->createdAt = new \DateTime();
     }
 
@@ -51,18 +53,18 @@ class Payment{
     }
 
     public function confirm(): void{
-        $this->status = 'confirmed';
+        $this->status = EnumPayment::PAYMENT_STATUS_CONFIRMED;
         $this->updatedAt = new \DateTime();
     }
 
     public function fail(string $reason): void{
-        $this->status = 'failed';
+        $this->status = EnumPayment::PAYMENT_STATUS_FAILED;
         $this->gatewayResponse = $reason;
         $this->updatedAt = new \DateTime();
     }
 
     public function refund(): void{
-        $this->status = 'refunded';
+        $this->status = EnumPayment::PAYMENT_STATUS_REFUNDED;
         $this->updatedAt = new \DateTime();
     }
 
