@@ -34,6 +34,7 @@ RUN apk add --no-cache \
     libzip-dev \
     postgresql-dev \
     linux-headers \
+    dos2unix \
   && docker-php-ext-install zip pdo pdo_pgsql
 
 RUN apk add --no-cache $PHPIZE_DEPS \
@@ -48,11 +49,11 @@ WORKDIR /var/www
 COPY --from=builder /app .
 
 COPY config/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN dos2unix /usr/local/bin/entrypoint.sh && chmod +x /usr/local/bin/entrypoint.sh
 
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
 EXPOSE 9000
 
-ENTRYPOINT ["entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["php-fpm"]
