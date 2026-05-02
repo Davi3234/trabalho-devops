@@ -162,7 +162,7 @@ services:
     build:
       context: ./payment-service
       dockerfile: Dockerfile
-    command: php artisan rabbitmq:consume
+    entrypoint: php artisan rabbitmq:consume
     env_file: ./payment-service/.env
     depends_on:
       db-payment:
