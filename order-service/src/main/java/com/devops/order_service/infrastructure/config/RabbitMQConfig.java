@@ -1,14 +1,18 @@
 package com.devops.order_service.infrastructure.config;
 
-import org.springframework.amqp.core.*;
+import java.util.List;
+
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.QueueBuilder;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.SimpleMessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.List;
 
 @Configuration
 public class RabbitMQConfig {
@@ -52,45 +56,45 @@ public class RabbitMQConfig {
 
     @Bean
     public TopicExchange estoqueExchange() {
-        return new TopicExchange("estoque.events");
+        return new TopicExchange("inventory.events");
     }
 
     @Bean
     public TopicExchange pagamentoExchange() {
-        return new TopicExchange("pagamento.events");
+        return new TopicExchange("payment.events");
     }
 
     @Bean
     public TopicExchange entregaExchange() {
-        return new TopicExchange("entrega.events");
+        return new TopicExchange("delivery.events");
     }
 
     @Bean
     public Binding bindEstoqueReservaFalhou() {
         return BindingBuilder.bind(estoqueReservaFalhouQueue())
                 .to(estoqueExchange())
-                .with("estoque.reserva_falhou");
+                .with("inventory.reserva.falhou");
     }
 
     @Bean
     public Binding bindPagamentoRecusado() {
         return BindingBuilder.bind(pagamentoRecusadoQueue())
                 .to(pagamentoExchange())
-                .with("pagamento.recusado");
+                .with("payment.pagamento.recusado");
     }
 
     @Bean
     public Binding bindPagamentoConfirmado() {
         return BindingBuilder.bind(pagamentoConfirmadoQueue())
                 .to(pagamentoExchange())
-                .with("pagamento.confirmado");
+                .with("payment.pagamento.confirmado");
     }
 
     @Bean
     public Binding bindEntregaDespachada() {
         return BindingBuilder.bind(entregaDespachadaQueue())
-                .to(entregaExchange())
-                .with("entrega.despachada");
+                .to(orderEventsExchange())
+                .with("delivery.entrega.despachada");
     }
 
     @Bean
