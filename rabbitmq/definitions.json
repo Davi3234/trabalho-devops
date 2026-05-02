@@ -6,7 +6,7 @@
   "users": [
     {
       "name": "admin",
-      "password_hash": "WUGfB35YT8oRPTCYnHssw1EvLpZD5bXPndmXORkLRJ1/ppQr",
+      "password_hash": "LPueU7zwGzqDYOZyfI32v2L3OMWhBBeeZY+AU3Z5aXZd8Onh",
       "hashing_algorithm": "rabbit_password_hashing_sha256",
       "tags": [
         "administrator"
@@ -39,11 +39,18 @@
   "global_parameters": [
     {
       "name": "internal_cluster_id",
-      "value": "rabbitmq-cluster-id-ALUlNRj-OgLsrqsMn-PY3g"
+      "value": "rabbitmq-cluster-id-PWwIxYzu5NKFlqTakUM2QA"
     }
   ],
   "policies": [],
   "queues": [
+    {
+      "name": "payment.pedido.aprovado",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
     {
       "name": "order.reserva.falhou",
       "vhost": "/",
@@ -59,7 +66,7 @@
       "arguments": {}
     },
     {
-      "name": "payment.pedido.criado",
+      "name": "order.estoque.reservado",
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
@@ -143,6 +150,14 @@
     {
       "source": "inventory.events",
       "vhost": "/",
+      "destination": "order.estoque.reservado",
+      "destination_type": "queue",
+      "routing_key": "inventory.estoque.reservado",
+      "arguments": {}
+    },
+    {
+      "source": "inventory.events",
+      "vhost": "/",
       "destination": "order.reserva.falhou",
       "destination_type": "queue",
       "routing_key": "inventory.reserva.falhou",
@@ -154,6 +169,14 @@
       "destination": "order.entrega.despachada",
       "destination_type": "queue",
       "routing_key": "delivery.entrega.despachada",
+      "arguments": {}
+    },
+    {
+      "source": "order.events",
+      "vhost": "/",
+      "destination": "payment.pedido.aprovado",
+      "destination_type": "queue",
+      "routing_key": "order.pedido.aprovado",
       "arguments": {}
     },
     {

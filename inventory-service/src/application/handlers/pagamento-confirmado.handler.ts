@@ -16,7 +16,7 @@ export class PagamentoConfirmadoHandler {
   ) { }
 
   async handle(payload: PagamentoConfirmadoPayload) {
-    this.logger.log(`Processando pagamento.confirmado para pedido ${payload.pedidoId}`)
+    this.logger.log(`Processando pedido.pago para pedido ${payload.pedidoId}`)
 
     await this.confirmarBaixa.execute({ pedidoId: payload.pedidoId })
   }
