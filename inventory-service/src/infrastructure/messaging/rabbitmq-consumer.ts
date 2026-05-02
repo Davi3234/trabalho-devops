@@ -27,7 +27,7 @@ export class RabbitMQConsumer {
   @RabbitSubscribe({
     exchange: 'order.events',
     routingKey: 'order.pedido.criado',
-    queue: 'pedido.criado',
+    queue: 'inventory.pedido.criado',
     queueOptions: {
       durable: true,
     },
@@ -50,7 +50,7 @@ export class RabbitMQConsumer {
   @RabbitSubscribe({
     exchange: 'order.events',
     routingKey: 'order.pedido.cancelado',
-    queue: 'pedido.cancelado',
+    queue: 'inventory.pedido.cancelado',
     queueOptions: {
       durable: true,
     },
@@ -65,7 +65,7 @@ export class RabbitMQConsumer {
   @RabbitSubscribe({
     exchange: 'order.events',
     routingKey: 'order.pedido.pago',
-    queue: 'pedido.pago',
+    queue: 'inventory.pedido.pago',
     queueOptions: {
       durable: true,
     },

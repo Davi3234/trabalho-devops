@@ -28,7 +28,7 @@ class ConsumeRabbitMQEvents extends Command{
         );
 
         $channel = $connection->channel();
-        $channel->exchange_declare('order.events', 'topic', false, false, false);
+        $channel->exchange_declare('payment.events', 'topic', false, false, false);
 
         $queue_name = 'payment.pedido.criado';
         $channel->queue_declare($queue_name, false, true, false, false);
