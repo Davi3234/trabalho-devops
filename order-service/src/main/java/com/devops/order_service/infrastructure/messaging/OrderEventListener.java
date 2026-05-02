@@ -18,6 +18,18 @@ public class OrderEventListener {
     private final OrderStateService orderStateService;
     private final ObjectMapper objectMapper;
 
+    @RabbitListener(queues = "${rabbitmq.queues.estoque-reserva-aprovou}")
+    public void handleEstoqueReservaAprovou(String message) {
+        try {
+            JsonNode json = objectMapper.readTree(message);
+            Long orderId = json.get("pedidoId").asLong();
+            log.info("Evento recebido: inventory.estoque.reservado para pedido {}", orderId);
+            orderStateService.handleStockReserved(orderId);
+        } catch (Exception e) {
+            log.error("Erro ao processar inventory.estoque.reservado: {}", e.getMessage(), e);
+        }
+    }
+
     @RabbitListener(queues = "${rabbitmq.queues.estoque-reserva-falhou}")
     public void handleEstoqueReservaFalhou(String message) {
         try {

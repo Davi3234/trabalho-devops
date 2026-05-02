@@ -17,6 +17,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitMQConfig {
 
+    @Value("${rabbitmq.queues.estoque-reserva-aprovou}")
+    private String estoqueReservaAprovouQueue;
+
     @Value("${rabbitmq.queues.estoque-reserva-falhou}")
     private String estoqueReservaFalhouQueue;
 
@@ -32,6 +35,11 @@ public class RabbitMQConfig {
     @Bean
     public TopicExchange orderEventsExchange() {
         return new TopicExchange("order.events");
+    }
+
+    @Bean
+    public Queue estoqueReservaAprovouQueue() {
+        return QueueBuilder.durable(estoqueReservaAprovouQueue).build();
     }
 
     @Bean
@@ -70,6 +78,14 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Binding bindEstoqueReservaAprovou() {
+        return BindingBuilder.bind(
+                estoqueReservaAprovouQueue())
+                .to(estoqueExchange())
+                .with("inventory.estoque.reservado");
+    }
+
+    @Bean
     public Binding bindEstoqueReservaFalhou() {
         return BindingBuilder.bind(estoqueReservaFalhouQueue())
                 .to(estoqueExchange())
@@ -80,14 +96,14 @@ public class RabbitMQConfig {
     public Binding bindPagamentoRecusado() {
         return BindingBuilder.bind(pagamentoRecusadoQueue())
                 .to(pagamentoExchange())
-                .with("payments.pagamento.recusado");
+                .with("payment.pagamento.recusado");
     }
 
     @Bean
     public Binding bindPagamentoConfirmado() {
         return BindingBuilder.bind(pagamentoConfirmadoQueue())
                 .to(pagamentoExchange())
-                .with("payments.pagamento.confirmado");
+                .with("payment.pagamento.confirmado");
     }
 
     @Bean

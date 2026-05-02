@@ -26,6 +26,10 @@ public class OrderEventPublisher {
         publish("order.pedido.criado", buildPayload(order));
     }
 
+    public void publishOrderAprove(Order order) {
+        publish("order.pedido.aprovado", buildPayload(order));
+    }
+
     public void publishOrderCancelled(Order order) {
         publish("order.pedido.cancelado", buildPayload(order));
     }
