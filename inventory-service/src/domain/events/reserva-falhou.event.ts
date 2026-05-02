@@ -10,7 +10,7 @@ export class ReservaFalhouEvent implements DomainEvent {
 
   readonly eventId: string
   readonly occurredAt: Date
-  readonly eventName = 'estoque.reserva_falhou'
+  readonly eventName = 'inventory.reserva.falhou'
 
   constructor(
     public readonly pedidoId: number,
