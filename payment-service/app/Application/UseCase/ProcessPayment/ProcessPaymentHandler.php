@@ -22,7 +22,7 @@ class ProcessPaymentHandler {
                 $dto->getPaymentData()
             );
 
-            $event = $payment->status() === 'confirmed' ? 'pagamento.confirmado' : 'pagamento.recusado';
+            $event = $payment->status() === 'confirmed' ? 'payments.pagamento.confirmado' : 'payments.pagamento.recusado';
             $this->eventPublisher->publish($event, [
                 'orderId' => $payment->orderId(),
                 'paymentId' => $payment->id()->value(),
