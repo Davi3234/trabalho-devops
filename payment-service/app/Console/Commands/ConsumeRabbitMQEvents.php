@@ -38,11 +38,11 @@ class ConsumeRabbitMQEvents extends Command{
         $httpClient = new Client();
 
         $callback = function ($msg) use ($httpClient) {
-            $this->info('Received: ' . $msg->body);
-
             $data = json_decode($msg->body, true);
 
             if ($data && isset($data['orderId'])) {
+                $this->info("Received event payment.pedido.aprovado for order {$data['orderId']}");
+
                 $this->processOrderCreatedEvent($data, $httpClient);
             }
 
