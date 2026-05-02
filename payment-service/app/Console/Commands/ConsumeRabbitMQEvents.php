@@ -29,11 +29,11 @@ class ConsumeRabbitMQEvents extends Command{
 
         $channel = $connection->channel();
 
-        $queue_name = 'payment.pedido.criado';
+        $queue_name = 'payment.pedido.aprovado';
         $channel->queue_declare($queue_name, false, true, false, false);
-        $channel->queue_bind($queue_name, 'order.events', 'order.pedido.criado');
+        $channel->queue_bind($queue_name, 'order.events', 'order.pedido.aprovado');
 
-        $this->info("Waiting for order.pedido.criado events. To exit press CTRL+C");
+        $this->info("Waiting for order.pedido.aprovado events. To exit press CTRL+C");
 
         $httpClient = new Client();
 
