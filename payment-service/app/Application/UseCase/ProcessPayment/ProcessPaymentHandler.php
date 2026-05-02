@@ -6,13 +6,14 @@ use App\Domain\Payment\Service\PaymentService;
 use App\Domain\Exceptions\PaymentFailedException;
 use App\Domain\Shared\Service\EventPublisherInterface;
 
-class ProcessPaymentHandler{
+class ProcessPaymentHandler {
     public function __construct(
         private PaymentService $paymentService,
         private EventPublisherInterface $eventPublisher
-    ) {}
+    ) {
+    }
 
-    public function handle(ProcessPaymentDTO $dto): ProcessPaymentResponseDTO{
+    public function handle(ProcessPaymentDTO $dto): ProcessPaymentResponseDTO {
         try {
             $payment = $this->paymentService->processPayment(
                 $dto->getOrderId(),
@@ -23,8 +24,8 @@ class ProcessPaymentHandler{
 
             $event = $payment->status() === 'confirmed' ? 'pagamento.confirmado' : 'pagamento.recusado';
             $this->eventPublisher->publish($event, [
-                'order_id' => $payment->orderId(),
-                'payment_id' => $payment->id()->value(),
+                'orderId' => $payment->orderId(),
+                'paymentId' => $payment->id()->value(),
                 'amount' => $payment->amount()->value(),
                 'method' => $payment->method()->value(),
                 'status' => $payment->status()
