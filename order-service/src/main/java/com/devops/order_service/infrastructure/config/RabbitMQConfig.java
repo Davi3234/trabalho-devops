@@ -80,14 +80,14 @@ public class RabbitMQConfig {
     public Binding bindPagamentoRecusado() {
         return BindingBuilder.bind(pagamentoRecusadoQueue())
                 .to(pagamentoExchange())
-                .with("payment.pagamento.recusado");
+                .with("payments.pagamento.recusado");
     }
 
     @Bean
     public Binding bindPagamentoConfirmado() {
         return BindingBuilder.bind(pagamentoConfirmadoQueue())
                 .to(pagamentoExchange())
-                .with("payment.pagamento.confirmado");
+                .with("payments.pagamento.confirmado");
     }
 
     @Bean
