@@ -158,6 +158,23 @@ services:
     networks:
       - app-network
 
+  payment-consumer:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    command: php artisan rabbitmq:consume
+    env_file: ./payment-service/.env
+    depends_on:
+      db-payment:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ./payment-service:/var/www
+      - /var/www/vendor
+    networks:
+      - app-network
+
   payment-nginx:
     image: nginx:alpine
     ports:
@@ -203,6 +220,7 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
       - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
     healthcheck:
       test:
         - CMD
