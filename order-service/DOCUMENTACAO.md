@@ -157,12 +157,12 @@ Um `@Scheduled` job (`ReservationTimeoutScheduler`) executa **a cada 60 segundos
 
 O `OrderStateService` processa eventos recebidos do RabbitMQ e aplica as seguintes transições:
 
-| Evento recebido          | Ação                                                              |
-| ------------------------ | ----------------------------------------------------------------- |
-| `estoque.reserva_falhou` | Status → `CANCELADO`, publica `pedido.cancelado`                  |
-| `pagamento.recusado`     | Status → `CANCELADO`, publica `pedido.cancelado`                  |
-| `pagamento.confirmado`   | Status → `PAGO`, invalida cupom single-use, publica `pedido.pago` |
-| `entrega.despachada`     | Status → `DESPACHADO`, publica `pedido.despachado`                |
+| Evento recebido                | Ação                                                                    |
+| ------------------------------ | ----------------------------------------------------------------------- |
+| `inventory.reserva.falhou`     | Status → `CANCELADO`, publica `order.pedido.cancelado`                  |
+| `payment.pagamento.recusado`   | Status → `CANCELADO`, publica `order.pedido.cancelado`                  |
+| `payment.pagamento.confirmado` | Status → `PAGO`, invalida cupom single-use, publica `order.pedido.pago` |
+| `delivery.entrega.despachada`  | Status → `DESPACHADO`, publica `order.pedido.despachado`                |
 
 ### 6. Invalidação de cupom de uso único
 
@@ -308,18 +308,18 @@ Para erros de validação (`400`), o campo `details` contém um mapa com os camp
 | Exchange           | Tipo  | Finalidade                                       |
 | ------------------ | ----- | ------------------------------------------------ |
 | `order.events`     | Topic | Publicação de eventos gerados pelo order-service |
-| `estoque.events`   | Topic | Recebimento de eventos do inventory-service      |
-| `pagamento.events` | Topic | Recebimento de eventos do payment-service        |
-| `entrega.events`   | Topic | Recebimento de eventos do serviço de entrega     |
+| `inventory.events` | Topic | Recebimento de eventos do inventory-service      |
+| `payment.events`   | Topic | Recebimento de eventos do payment-service        |
+| `delivery.events`  | Topic | Recebimento de eventos do serviço de entrega     |
 
 ### Eventos publicados (`order.events`)
 
-| Routing Key         | Gatilho                                      |
-| ------------------- | -------------------------------------------- |
-| `pedido.criado`     | Pedido criado com sucesso                    |
-| `pedido.cancelado`  | Pedido cancelado (cliente, timeout ou falha) |
-| `pedido.pago`       | Pagamento confirmado                         |
-| `pedido.despachado` | Entrega despachada                           |
+| Routing Key               | Gatilho                                      |
+| ------------------------- | -------------------------------------------- |
+| `order.pedido.criado`     | Pedido criado com sucesso                    |
+| `order.pedido.cancelado`  | Pedido cancelado (cliente, timeout ou falha) |
+| `order.pedido.pago`       | Pagamento confirmado                         |
+| `order.pedido.despachado` | Entrega despachada                           |
 
 **Payload publicado:**
 
@@ -345,12 +345,12 @@ Para erros de validação (`400`), o campo `details` contém um mapa com os camp
 
 ### Filas consumidas
 
-| Fila                           | Binding                                     | Handler                      |
-| ------------------------------ | ------------------------------------------- | ---------------------------- |
-| `order.estoque.reserva_falhou` | `estoque.events` / `estoque.reserva_falhou` | `handleEstoqueReservaFalhou` |
-| `order.pagamento.recusado`     | `pagamento.events` / `pagamento.recusado`   | `handlePagamentoRecusado`    |
-| `order.pagamento.confirmado`   | `pagamento.events` / `pagamento.confirmado` | `handlePagamentoConfirmado`  |
-| `order.entrega.despachada`     | `entrega.events` / `entrega.despachada`     | `handleEntregaDespachada`    |
+| Fila                   | Binding                                           | Handler                      |
+| ---------------------- | ------------------------------------------------- | ---------------------------- |
+| `reserva.falhou`       | `inventory.events` / `inventory.reserva.falhou`   | `handleEstoqueReservaFalhou` |
+| `pagamento.recusado`   | `payment.events` / `payment.pagamento.recusado`   | `handlePagamentoRecusado`    |
+| `pagamento.confirmado` | `payment.events` / `payment.pagamento.confirmado` | `handlePagamentoConfirmado`  |
+| `entrega.despachada`   | `delivery.events` / `delivery.entrega.despachada` | `handleEntregaDespachada`    |
 
 Todas as filas são **durable** (sobrevivem a reinicializações do broker).
 
@@ -519,9 +519,9 @@ Em ambiente de teste (`@ActiveProfiles("test")`):
 
 | Variável            | Descrição                      |
 | ------------------- | ------------------------------ |
-| `POSTGRES_URL`      | Nome do banco PostgreSQL       |
-| `POSTGRES_USER`     | Usuário do banco               |
-| `POSTGRES_PASSWORD` | Senha do banco                 |
+| `DB_URL`            | URL do banco PostgreSQL        |
+| `DB_USERNAME`       | Usuário do banco               |
+| `DB_PASSWORD`       | Senha do banco                 |
 | `RABBITMQ_HOST`     | Host do broker RabbitMQ        |
 | `RABBITMQ_PORT`     | Porta do broker (padrão: 5672) |
 | `RABBITMQ_USERNAME` | Usuário do RabbitMQ            |
