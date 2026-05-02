@@ -150,6 +150,8 @@ services:
     depends_on:
       db-payment:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     volumes:
       - ./payment-service:/var/www
       - /var/www/vendor
