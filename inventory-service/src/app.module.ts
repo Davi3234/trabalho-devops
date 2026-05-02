@@ -14,7 +14,7 @@ import { ExpirarReservasUseCase } from '@application/use-cases/expirar-reserva.u
 import { ReservarItensUseCase } from '@application/use-cases/reservar-itens.use-case'
 import { PRODUTO_REPO_TOKEN } from '@domain/repositories/produto.repository'
 import { RESERVA_REPO_TOKEN } from '@domain/repositories/reserva.repository'
-import { RabbitMQConsumerController } from '@infrastructure/messaging/rabbitmq-consumer'
+import { RabbitMQConsumer } from '@infrastructure/messaging/rabbitmq-consumer'
 import { RabbitMQModule } from '@infrastructure/rabbitmq.module'
 import { RedisModule } from '@infrastructure/redis.module'
 import { PrismaProdutoRepository } from '@infrastructure/repositories/prisma-product.repository'
@@ -37,7 +37,6 @@ import { CatchAllExceptionFilter } from '@presentation/filters/catch-all.filter'
   controllers: [
     AppController,
     EstoqueController,
-    RabbitMQConsumerController,
   ],
   providers: [
     PrismaService,
@@ -57,6 +56,8 @@ import { CatchAllExceptionFilter } from '@presentation/filters/catch-all.filter'
     PagamentoConfirmadoHandler,
 
     ReservaExpiryJob,
+
+    RabbitMQConsumer,
 
     { provide: APP_FILTER, useClass: CatchAllExceptionFilter },
   ],

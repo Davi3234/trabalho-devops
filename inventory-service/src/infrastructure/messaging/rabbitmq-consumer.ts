@@ -1,17 +1,22 @@
-import { Controller, Logger } from '@nestjs/common'
-import { EventPattern, Payload } from '@nestjs/microservices'
+import { RabbitSubscribe } from '@golevelup/nestjs-rabbitmq'
+import { Injectable, Logger } from '@nestjs/common'
 
-import type { PagamentoConfirmadoPayload } from '@application/handlers/pagamento-confirmado.handler'
 import { PagamentoConfirmadoHandler } from '@application/handlers/pagamento-confirmado.handler'
-import type { PedidoCanceladoPayload } from '@application/handlers/pedido-cancelado.handler'
 import { PedidoCanceladoHandler } from '@application/handlers/pedido-cancelado.handler'
-import type { PedidoCriadoPayload } from '@application/handlers/pedido-criado.handler'
 import { PedidoCriadoHandler } from '@application/handlers/pedido-criado.handler'
 
-@Controller()
-export class RabbitMQConsumerController {
+type PedidoIdentifierPayload = {
+  orderId: number
+}
 
-  private readonly logger = new Logger(RabbitMQConsumerController.name)
+type PedidoPayload = PedidoIdentifierPayload & {
+  items: { productId: number, quantity: number }[]
+}
+
+@Injectable()
+export class RabbitMQConsumer {
+
+  private readonly logger = new Logger(RabbitMQConsumer.name)
 
   constructor(
     private readonly pedidoCriadoHandler: PedidoCriadoHandler,
@@ -19,21 +24,56 @@ export class RabbitMQConsumerController {
     private readonly pagamentoConfirmadoHandler: PagamentoConfirmadoHandler,
   ) { }
 
-  @EventPattern('pedido.criado')
-  async onPedidoCriado(@Payload() payload: PedidoCriadoPayload) {
-    this.logger.log(`Recebido pedido.criado [pedido: ${payload.pedidoId}]`)
-    await this.pedidoCriadoHandler.handle(payload)
+  @RabbitSubscribe({
+    exchange: 'order.events',
+    routingKey: 'order.pedido.criado',
+    queue: 'inventory.pedido.criado',
+    queueOptions: {
+      durable: true,
+    },
+  })
+  async onPedidoCriado(payload: PedidoPayload) {
+    try {
+      const parsed = {
+        pedidoId: payload.orderId,
+        itens: payload.items.map(({ productId, quantity }) => ({
+          produtoId: productId,
+          quantidade: quantity
+        })),
+      }
+
+      this.logger.log(`Recebido pedido.criado [pedido: ${parsed.pedidoId}]`)
+      await this.pedidoCriadoHandler.handle(parsed)
+    } catch (error: any) { }
   }
 
-  @EventPattern('pedido.cancelado')
-  async onPedidoCancelado(@Payload() payload: PedidoCanceladoPayload) {
-    this.logger.log(`Recebido pedido.cancelado [pedido: ${payload.pedidoId}]`)
-    await this.pedidoCanceladoHandler.handle(payload)
+  @RabbitSubscribe({
+    exchange: 'order.events',
+    routingKey: 'order.pedido.cancelado',
+    queue: 'inventory.pedido.cancelado',
+    queueOptions: {
+      durable: true,
+    },
+  })
+  async onPedidoCancelado({ orderId }: PedidoIdentifierPayload) {
+    try {
+      this.logger.log(`Recebido pedido.cancelado [pedido: ${orderId}]`)
+      await this.pedidoCanceladoHandler.handle({ pedidoId: orderId })
+    } catch (error: any) { }
   }
 
-  @EventPattern('pagamento.confirmado')
-  async onPagamentoConfirmado(@Payload() payload: PagamentoConfirmadoPayload) {
-    this.logger.log(`Recebido pagamento.confirmado [pedido: ${payload.pedidoId}]`)
-    await this.pagamentoConfirmadoHandler.handle(payload)
+  @RabbitSubscribe({
+    exchange: 'order.events',
+    routingKey: 'order.pedido.pago',
+    queue: 'inventory.pedido.pago',
+    queueOptions: {
+      durable: true,
+    },
+  })
+  async onPagamentoConfirmado({ orderId }: PedidoIdentifierPayload) {
+    try {
+      this.logger.log(`Recebido pedido.pago [pedido: ${orderId}]`)
+      await this.pagamentoConfirmadoHandler.handle({ pedidoId: orderId })
+    } catch (error: any) { }
   }
 }

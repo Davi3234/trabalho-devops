@@ -1,12 +1,14 @@
 package com.devops.order_service.infrastructure.messaging;
 
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.stereotype.Component;
+
 import com.devops.order_service.application.service.OrderStateService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
@@ -16,15 +18,27 @@ public class OrderEventListener {
     private final OrderStateService orderStateService;
     private final ObjectMapper objectMapper;
 
+    @RabbitListener(queues = "${rabbitmq.queues.estoque-reserva-aprovou}")
+    public void handleEstoqueReservaAprovou(String message) {
+        try {
+            JsonNode json = objectMapper.readTree(message);
+            Long orderId = json.get("pedidoId").asLong();
+            log.info("Evento recebido: inventory.estoque.reservado para pedido {}", orderId);
+            orderStateService.handleStockReserved(orderId);
+        } catch (Exception e) {
+            log.error("Erro ao processar inventory.estoque.reservado: {}", e.getMessage(), e);
+        }
+    }
+
     @RabbitListener(queues = "${rabbitmq.queues.estoque-reserva-falhou}")
     public void handleEstoqueReservaFalhou(String message) {
         try {
             JsonNode json = objectMapper.readTree(message);
-            Long orderId = json.get("orderId").asLong();
-            log.info("Evento recebido: estoque.reserva_falhou para pedido {}", orderId);
+            Long orderId = json.get("pedidoId").asLong();
+            log.info("Evento recebido: inventory.reserva.falhou para pedido {}", orderId);
             orderStateService.handleStockReservationFailed(orderId);
         } catch (Exception e) {
-            log.error("Erro ao processar estoque.reserva_falhou: {}", e.getMessage(), e);
+            log.error("Erro ao processar inventory.reserva.falhou: {}", e.getMessage(), e);
         }
     }
 
@@ -36,7 +50,7 @@ public class OrderEventListener {
             log.info("Evento recebido: pagamento.recusado para pedido {}", orderId);
             orderStateService.handlePaymentRejected(orderId);
         } catch (Exception e) {
-            log.error("Erro ao processar pagamento.recusado: {}", e.getMessage(), e);
+            log.error("Erro ao processar payment.pagamento.recusado: {}", e.getMessage(), e);
         }
     }
 
@@ -48,7 +62,7 @@ public class OrderEventListener {
             log.info("Evento recebido: pagamento.confirmado para pedido {}", orderId);
             orderStateService.handlePaymentConfirmed(orderId);
         } catch (Exception e) {
-            log.error("Erro ao processar pagamento.confirmado: {}", e.getMessage(), e);
+            log.error("Erro ao processar payment.pagamento.confirmado: {}", e.getMessage(), e);
         }
     }
 
@@ -57,10 +71,10 @@ public class OrderEventListener {
         try {
             JsonNode json = objectMapper.readTree(message);
             Long orderId = json.get("orderId").asLong();
-            log.info("Evento recebido: entrega.despachada para pedido {}", orderId);
+            log.info("Evento recebido: delivery.entrega.despachada para pedido {}", orderId);
             orderStateService.handleDeliveryDispatched(orderId);
         } catch (Exception e) {
-            log.error("Erro ao processar entrega.despachada: {}", e.getMessage(), e);
+            log.error("Erro ao processar delivery.entrega.despachada: {}", e.getMessage(), e);
         }
     }
 }

@@ -1,10 +1,8 @@
-import { Inject, Injectable, Logger } from '@nestjs/common'
-import { ClientProxy } from '@nestjs/microservices'
-import { lastValueFrom } from 'rxjs'
+import { AmqpConnection } from '@golevelup/nestjs-rabbitmq'
+import { Injectable, Logger } from '@nestjs/common'
 
 import { IEventPublisher } from '@application/ports/event-publisher.port'
 import { DomainEvent } from '@domain/events/domain-event'
-import { RABBITMQ_CLIENT_TOKEN } from '@infrastructure/rabbitmq.token'
 
 @Injectable()
 export class RabbitMQPublisher implements IEventPublisher {
@@ -12,7 +10,7 @@ export class RabbitMQPublisher implements IEventPublisher {
   private readonly logger = new Logger(RabbitMQPublisher.name)
 
   constructor(
-    @Inject(RABBITMQ_CLIENT_TOKEN) private readonly client: ClientProxy
+    private readonly client: AmqpConnection
   ) { }
 
   async publishMany(events: DomainEvent[]): Promise<void> {
@@ -22,8 +20,8 @@ export class RabbitMQPublisher implements IEventPublisher {
   }
 
   async publish(event: DomainEvent): Promise<void> {
-    await lastValueFrom(this.client.emit(event.eventName, event))
+    await this.client.publish('inventory.events', event.eventName, event)
 
-    this.logger.debug(`Evento publicado: ${event.eventName} [${event.eventId}]`)
+    this.logger.log(`Evento publicado: ${event.eventName} [${event.eventId}]`)
   }
 }
