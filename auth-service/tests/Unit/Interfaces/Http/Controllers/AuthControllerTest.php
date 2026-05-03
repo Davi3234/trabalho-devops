@@ -10,15 +10,12 @@ use App\Domain\Auth\Service\TokenService;
 use Laravel\Lumen\Testing\TestCase;
 use Mockery;
 
-class AuthControllerTest extends TestCase
-{
-    public function createApplication()
-    {
+class AuthControllerTest extends TestCase{
+    public function createApplication(){
         return require __DIR__ . '/../../../../bootstrap/app.php';
     }
 
-    public function testLoginSuccess()
-    {
+    public function testLoginSuccess(){
         $handler = Mockery::mock(LoginUserHandler::class);
         $responseDTO = new LoginUserResponseDTO('jwt_token_123', 1, 'joao@example.com', 'João Silva');
 
@@ -39,8 +36,7 @@ class AuthControllerTest extends TestCase
         ->assertResponseOk();
     }
 
-    public function testRegisterSuccess()
-    {
+    public function testRegisterSuccess(){
         $handler = Mockery::mock(RegisterUserHandler::class);
         $responseDTO = new RegisterUserResponseDTO(1, 'maria@example.com', 'Maria Silva');
 

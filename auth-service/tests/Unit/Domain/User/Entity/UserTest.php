@@ -7,8 +7,7 @@ use App\Domain\User\ValueObject\Email;
 use App\Domain\User\ValueObject\Password;
 use PHPUnit\Framework\TestCase;
 
-class UserTest extends TestCase
-{
+class UserTest extends TestCase{
     public function testCreateUser(): void
     {
         $id = 1;
@@ -24,24 +23,21 @@ class UserTest extends TestCase
         $this->assertEquals($password, $user->password());
     }
 
-    public function testUserIdGetter(): void
-    {
+    public function testUserIdGetter(): void{
         $user = new User(42, 'Maria', new Email('maria@example.com'), Password::fromPlain('senha654321'));
 
         $this->assertEquals(42, $user->id());
         $this->assertIsInt($user->id());
     }
 
-    public function testUserNameGetter(): void
-    {
+    public function testUserNameGetter(): void{
         $name = 'Carlos Alberto';
         $user = new User(1, $name, new Email('carlos@example.com'), Password::fromPlain('pass123456'));
 
         $this->assertEquals($name, $user->name());
     }
 
-    public function testUserEmailGetter(): void
-    {
+    public function testUserEmailGetter(): void{
         $email = new Email('teste@example.com');
         $user = new User(1, 'Teste', $email, Password::fromPlain('senha123456'));
 
@@ -49,8 +45,7 @@ class UserTest extends TestCase
         $this->assertInstanceOf(Email::class, $user->email());
     }
 
-    public function testUserPasswordGetter(): void
-    {
+    public function testUserPasswordGetter(): void{
         $password = Password::fromPlain('securepass2024');
         $user = new User(1, 'Usuario', new Email('user@example.com'), $password);
 
@@ -58,8 +53,7 @@ class UserTest extends TestCase
         $this->assertInstanceOf(Password::class, $user->password());
     }
 
-    public function testChangeNameSuccess(): void
-    {
+    public function testChangeNameSuccess(): void{
         $user = new User(1, 'Nome Antigo', new Email('user@example.com'), Password::fromPlain('senha123456'));
 
         $newName = 'Nome Novo';
@@ -68,8 +62,7 @@ class UserTest extends TestCase
         $this->assertEquals($newName, $user->name());
     }
 
-    public function testChangeNameThrowsExceptionForEmpty(): void
-    {
+    public function testChangeNameThrowsExceptionForEmpty(): void{
         $user = new User(1, 'Original Name', new Email('user@example.com'), Password::fromPlain('senha123456'));
 
         $this->expectException(\InvalidArgumentException::class);
@@ -78,16 +71,14 @@ class UserTest extends TestCase
         $user->changeName('');
     }
 
-    public function testChangeNameThrowsExceptionForEmptyAfterTrim(): void
-    {
+    public function testChangeNameThrowsExceptionForEmptyAfterTrim(): void{
         $user = new User(1, 'Original', new Email('user@example.com'), Password::fromPlain('senha123456'));
 
         $this->expectException(\InvalidArgumentException::class);
-        $user->changeName('   '); // Only spaces
+        $user->changeName('   ');
     }
 
-    public function testChangeEmailSuccess(): void
-    {
+    public function testChangeEmailSuccess(): void{
         $originalEmail = new Email('original@example.com');
         $user = new User(1, 'Usuario', $originalEmail, Password::fromPlain('senha123456'));
 
@@ -98,8 +89,7 @@ class UserTest extends TestCase
         $this->assertTrue($user->email()->equals($newEmail));
     }
 
-    public function testVerifyPasswordSuccess(): void
-    {
+    public function testVerifyPasswordSuccess(): void{
         $plainPassword = 'meuPassword123';
         $password = Password::fromPlain($plainPassword);
         $user = new User(1, 'Usuario', new Email('user@example.com'), $password);
@@ -107,32 +97,28 @@ class UserTest extends TestCase
         $this->assertTrue($user->verifyPassword($plainPassword));
     }
 
-    public function testVerifyPasswordFailure(): void
-    {
+    public function testVerifyPasswordFailure(): void{
         $password = Password::fromPlain('senhaCorreta123');
         $user = new User(1, 'Usuario', new Email('user@example.com'), $password);
 
         $this->assertFalse($user->verifyPassword('senhaErrada'));
     }
 
-    public function testVerifyPasswordCaseSensitive(): void
-    {
+    public function testVerifyPasswordCaseSensitive(): void{
         $password = Password::fromPlain('SenhaComMaiuscula');
         $user = new User(1, 'Usuario', new Email('user@example.com'), $password);
 
         $this->assertFalse($user->verifyPassword('senhacommaiuscula')); // Different case
     }
 
-    public function testUserWithSpecialCharactersInName(): void
-    {
+    public function testUserWithSpecialCharactersInName(): void{
         $specialName = "José da Silva O'Connor";
         $user = new User(1, $specialName, new Email('jose@example.com'), Password::fromPlain('senha123456'));
 
         $this->assertEquals($specialName, $user->name());
     }
 
-    public function testChangeMultipleProperties(): void
-    {
+    public function testChangeMultipleProperties(): void{
         $user = new User(10, 'Initial Name', new Email('initial@example.com'), Password::fromPlain('senha123456'));
 
         $user->changeName('Updated Name');

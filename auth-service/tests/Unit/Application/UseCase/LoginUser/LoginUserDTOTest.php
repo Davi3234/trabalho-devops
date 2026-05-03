@@ -6,26 +6,22 @@ use App\Application\UseCase\LoginUser\LoginUserDTO;
 use App\Application\UseCase\LoginUser\LoginUserResponseDTO;
 use PHPUnit\Framework\TestCase;
 
-class LoginUserDTOTest extends TestCase
-{
-    public function testLoginUserDTO(): void
-    {
+class LoginUserDTOTest extends TestCase{
+    public function testLoginUserDTO(): void{
         $dto = new LoginUserDTO('joao@example.com', 'senha123456');
 
         $this->assertEquals('joao@example.com', $dto->getEmail());
         $this->assertEquals('senha123456', $dto->getPassword());
     }
 
-    public function testLoginUserDTOWithDifferentData(): void
-    {
+    public function testLoginUserDTOWithDifferentData(): void{
         $dto = new LoginUserDTO('test@test.com', 'pass555');
 
         $this->assertIsString($dto->getEmail());
         $this->assertIsString($dto->getPassword());
     }
 
-    public function testLoginUserResponseDTO(): void
-    {
+    public function testLoginUserResponseDTO(): void{
         $responseDTO = new LoginUserResponseDTO('jwt_token_123', 1, 'user@example.com', 'User');
 
         $this->assertEquals('jwt_token_123', $responseDTO->getToken());
@@ -34,8 +30,7 @@ class LoginUserDTOTest extends TestCase
         $this->assertEquals('User', $responseDTO->getName());
     }
 
-    public function testLoginUserResponseDTOToArray(): void
-    {
+    public function testLoginUserResponseDTOToArray(): void{
         $responseDTO = new LoginUserResponseDTO('token_abc', 2, 'maria@example.com', 'Maria');
 
         $array = $responseDTO->toArray();
@@ -51,8 +46,7 @@ class LoginUserDTOTest extends TestCase
         $this->assertEquals('Maria', $array['user']['name']);
     }
 
-    public function testLoginUserResponseDTOStructure(): void
-    {
+    public function testLoginUserResponseDTOStructure(): void{
         $responseDTO = new LoginUserResponseDTO('long_jwt_token_xyz', 99, 'admin@example.com', 'Admin User');
 
         $array = $responseDTO->toArray();
@@ -61,8 +55,7 @@ class LoginUserDTOTest extends TestCase
         $this->assertCount(3, $array['user']);
     }
 
-    public function testLoginUserResponseDTOWithSpecialCharacters(): void
-    {
+    public function testLoginUserResponseDTOWithSpecialCharacters(): void{
         $responseDTO = new LoginUserResponseDTO('token_spec', 10, 'josé@example.com', "José's Full Name");
 
         $array = $responseDTO->toArray();

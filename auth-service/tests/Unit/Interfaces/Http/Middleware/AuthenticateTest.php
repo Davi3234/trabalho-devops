@@ -8,19 +8,16 @@ use App\Interfaces\Http\Middleware\Authenticate;
 use Illuminate\Http\Request;
 use PHPUnit\Framework\TestCase;
 
-class AuthenticateTest extends TestCase
-{
+class AuthenticateTest extends TestCase{
     private Authenticate $middleware;
     private TokenService $tokenService;
 
-    protected function setUp(): void
-    {
+    protected function setUp(): void{
         $this->tokenService = \Mockery::mock(TokenService::class);
         $this->middleware = new Authenticate($this->tokenService);
     }
 
-    public function testHandleWithValidToken(): void
-    {
+    public function testHandleWithValidToken(): void{
         $payload = (object)['sub' => 1, 'email' => 'user@example.com'];
 
         $this->tokenService->shouldReceive('validate')
@@ -44,8 +41,7 @@ class AuthenticateTest extends TestCase
         \Mockery::close();
     }
 
-    public function testHandleWithoutToken(): void
-    {
+    public function testHandleWithoutToken(): void{
         $request = \Mockery::mock(Request::class);
         $request->shouldReceive('header')
             ->with('Authorization')
@@ -59,8 +55,7 @@ class AuthenticateTest extends TestCase
         \Mockery::close();
     }
 
-    public function testHandleWithInvalidToken(): void
-    {
+    public function testHandleWithInvalidToken(): void{
         $this->tokenService->shouldReceive('validate')
             ->once()
             ->andReturn(null);
@@ -78,8 +73,7 @@ class AuthenticateTest extends TestCase
         \Mockery::close();
     }
 
-    public function testHandleWithMalformedAuthHeader(): void
-    {
+    public function testHandleWithMalformedAuthHeader(): void{
         $request = \Mockery::mock(Request::class);
         $request->shouldReceive('header')
             ->with('Authorization')
@@ -93,8 +87,7 @@ class AuthenticateTest extends TestCase
         \Mockery::close();
     }
 
-    public function testHandleAddsUserToRequest(): void
-    {
+    public function testHandleAddsUserToRequest(): void{
         $payload = (object)['sub' => 42, 'email' => 'test@example.com'];
 
         $this->tokenService->shouldReceive('validate')
@@ -122,8 +115,7 @@ class AuthenticateTest extends TestCase
         \Mockery::close();
     }
 
-    public function testTokenExtractionWithBearer(): void
-    {
+    public function testTokenExtractionWithBearer(): void{
         $payload = (object)['sub' => 1];
 
         $this->tokenService->shouldReceive('validate')
@@ -145,8 +137,7 @@ class AuthenticateTest extends TestCase
         \Mockery::close();
     }
 
-    public function testTokenExtractionWithcase sensitive(): void
-    {
+    public function testTokenExtractionWithcasesensitive(): void{
         $payload = (object)['sub' => 1];
 
         $this->tokenService->shouldReceive('validate')
@@ -156,7 +147,7 @@ class AuthenticateTest extends TestCase
         $request = \Mockery::mock(Request::class);
         $request->shouldReceive('header')
             ->with('Authorization')
-            ->andReturn('bearer case_test_token'); // lowercase bearer
+            ->andReturn('bearer case_test_token');
 
         $request->shouldReceive('attributes->add');
 

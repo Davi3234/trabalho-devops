@@ -82,7 +82,7 @@ class LoginUserHandlerTest extends TestCase
         \Mockery::close();
     }
 
-    public fun ction testLoginUserWithInvalidEmail(): void
+    public function testLoginUserWithInvalidEmail(): void
     {
         $dto = new LoginUserDTO('invalid-email', 'senha123456');
 

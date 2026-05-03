@@ -8,10 +8,8 @@ use App\Domain\Exceptions\UserNotFound;
 use App\Domain\Exceptions\InvalidEmailException;
 use PHPUnit\Framework\TestCase;
 
-class AuthExceptionsTest extends TestCase
-{
-    public function testEmailAlreadyInUseException(): void
-    {
+class AuthExceptionsTest extends TestCase{
+    public function testEmailAlreadyInUseException(): void{
         $exception = new EmailAlreadyInUseException('test@example.com');
 
         $this->assertThrowable($exception, 'EMAIL_IN_USE', 409);
