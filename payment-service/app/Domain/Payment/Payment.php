@@ -30,6 +30,7 @@ class Payment{
         $this->status = EnumPayment::PAYMENT_STATUS_PENDING;
         $this->gatewayResponse = null;
         $this->createdAt = new \DateTime();
+        $this->updatedAt = null;
     }
 
     public function id(): PaymentId{

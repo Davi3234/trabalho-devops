@@ -18,14 +18,21 @@ class PaymentController extends BaseController{
     public function process(Request $request): JsonResponse{
         $data = $request->json()->all();
 
-        $request->merge($data); // Merge JSON data into request
+        $request->merge($data);
 
-        Validator::make($request->all(), [
-            'order_id' => 'required|string',
-            'amount' => 'required|numeric|min:0.01',
-            'method' => 'required|in:credit_card,pix,boleto',
+        $validator = Validator::make($request->all(), [
+            'order_id'     => 'required|string',
+            'amount'       => 'required|numeric|min:0.01',
+            'method'       => 'required|in:credit_card,pix,boleto',
             'payment_data' => 'sometimes|array',
-        ])->validate();
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors'  => $validator->errors()
+            ], 422, [], JSON_UNESCAPED_UNICODE);
+        }
 
         $dto = new ProcessPaymentDTO(
             $request->input('order_id'),
@@ -34,18 +41,27 @@ class PaymentController extends BaseController{
             $request->input('payment_data', [])
         );
 
-        $response = $this->processPaymentHandler->handle($dto);
+        try {
+            $response = $this->processPaymentHandler->handle($dto);
 
-        return response()->json([
-            'success' => true,
-            'data' => $response->toArray(),
-            'message' => 'Pagamento processado com sucesso.'
-        ], Response::HTTP_OK);
+            return response()->json([
+                'success' => true,
+                'data' => $response->toArray(),
+                'message' => 'Pagamento processado com sucesso.'
+            ], Response::HTTP_OK, [], JSON_UNESCAPED_UNICODE);
+        }
+        catch (\App\Domain\Exceptions\PaymentFailedException $e){
+            return response()->json([
+                'success' => false,
+                'message' => 'Pagamento falhou: ' . $e->getMessage(),
+                'error'   => 'PAYMENT_FAILED'
+            ], Response::HTTP_BAD_REQUEST, [], JSON_UNESCAPED_UNICODE);
+        }
     }
 
     public function handleStockReserved(Request $request): JsonResponse{
         $orderId = $request->get('order_id');
-        $amount = $request->get('amount');
+        $amount = (float) $request->get('amount');
         $method = $request->get('method', 'credit_card');
         $paymentData = $request->get('payment_data', []);
 
@@ -57,12 +73,13 @@ class PaymentController extends BaseController{
                 'success' => true,
                 'data' => $response->toArray(),
                 'message' => 'Pagamento processado do estoque reservado.'
-            ], Response::HTTP_OK);
+            ], Response::HTTP_OK, [], JSON_UNESCAPED_UNICODE);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
-            ], Response::HTTP_BAD_REQUEST);
+            ], Response::HTTP_BAD_REQUEST, [], JSON_UNESCAPED_UNICODE);
         }
     }
 }

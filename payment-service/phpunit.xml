@@ -4,6 +4,22 @@
          bootstrap="vendor/autoload.php"
          colors="true"
 >
+    <source>
+        <include>
+            <file>./app/Application/UseCase/ProcessPayment/ProcessPaymentDTO.php</file>
+            <file>./app/Application/UseCase/ProcessPayment/ProcessPaymentHandler.php</file>
+            <file>./app/Application/UseCase/ProcessPayment/ProcessPaymentResponseDTO.php</file>
+            <file>./app/Domain/Exceptions/PaymentFailedException.php</file>
+            <file>./app/Domain/Payment/Payment.php</file>
+            <file>./app/Domain/Payment/Service/PaymentService.php</file>
+            <file>./app/Domain/Payment/ValueObject/Amount.php</file>
+            <file>./app/Domain/Payment/ValueObject/PaymentId.php</file>
+            <file>./app/Domain/Payment/ValueObject/PaymentMethod.php</file>
+            <file>./app/Infrastructure/Service/MockPaymentGateway.php</file>
+            <file>./app/Interfaces/Http/Request/ProcessPaymentRequest.php</file>
+            <file>./app/Interfaces/Http/Controller/PaymentController.php</file>
+        </include>
+    </source>
     <testsuites>
         <testsuite name="Application Test Suite">
             <directory suffix="Test.php">./tests</directory>

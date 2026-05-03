@@ -35,4 +35,46 @@ class PaymentTest extends TestCase{
         $payment->fail('Insufficient funds');
         $this->assertEquals('failed', $payment->status());
     }
+
+    public function testRefundPayment(){
+        $payment = new Payment(new PaymentId('pay_123'), 'order_456', new Amount(100.00), new PaymentMethod('credit_card'));
+        $payment->confirm();
+        $payment->refund();
+        $this->assertEquals('refunded', $payment->status());
+    }
+
+    public function testPaymentToArray(){
+        $payment = new Payment(new PaymentId('pay_123'), 'order_456', new Amount(100.00), new PaymentMethod('pix'));
+        $result = $payment->toArray();
+
+        $this->assertIsArray($result);
+        $this->assertEquals('pay_123', $result['id']);
+        $this->assertEquals('order_456', $result['order_id']);
+        $this->assertEquals(100.00, $result['amount']);
+        $this->assertEquals('pix', $result['method']);
+        $this->assertEquals('pending', $result['status']);
+        $this->assertArrayHasKey('created_at', $result);
+        $this->assertNull($result['updated_at']);
+    }
+
+    public function testPaymentStatusUpdateTimestamp(){
+        $payment = new Payment(new PaymentId('pay_456'), 'order_789', new Amount(50.00), new PaymentMethod('boleto'));
+
+        $initialArray = $payment->toArray();
+        $this->assertNull($initialArray['updated_at']);
+
+        $payment->confirm();
+
+        $updatedArray = $payment->toArray();
+        $this->assertNotNull($updatedArray['updated_at']);
+    }
+
+    public function testPaymentWithDifferentMethods(){
+        $methods = ['credit_card', 'pix', 'boleto'];
+
+        foreach ($methods as $method) {
+            $payment = new Payment(new PaymentId('pay_' . $method), 'order_123', new Amount(100.00), new PaymentMethod($method));
+            $this->assertEquals($method, $payment->method()->value());
+        }
+    }
 }

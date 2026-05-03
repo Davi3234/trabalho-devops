@@ -48,14 +48,20 @@ class Handler extends ExceptionHandler
      *
      * @throws \Throwable
      */
-    public function render($request, Throwable $exception)
-    {
+    public function render($request, Throwable $exception){
         if ($exception instanceof DomainException) {
             return response()->json([
                 'success' => false,
                 'message' => $exception->getMessage(),
-                'error' => $exception->getErrorCode(),
-            ], $exception->getHttpStatus());
+                'error'   => $exception->getErrorCode(),
+            ], $exception->getHttpStatus(), [], JSON_UNESCAPED_UNICODE);
+        }
+
+        if ($exception instanceof ValidationException) {
+            return response()->json([
+                'success' => false,
+                'errors'  => $exception->errors(),
+            ], 422, [], JSON_UNESCAPED_UNICODE);
         }
 
         return parent::render($request, $exception);

@@ -6,9 +6,10 @@ class ProcessPaymentResponseDTO{
     public function __construct(
         private string $paymentId,
         private string $orderId,
-        private float $amount,
-        private string $method,
-        private string $status
+        private ?float $amount,
+        private ?string $method = null,
+        private string $status = 'confirmed'
+
     ) {}
 
     public function toArray(): array{
