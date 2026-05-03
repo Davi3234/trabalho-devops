@@ -217,19 +217,37 @@ if (produto.isNivelCritico()) {
 
 Consultar disponibilidade de itens em tempo real antes da reserva.
 
-**Endpoint**: `GET /estoque/disponibilidade?produtoId={id}&quantidade={qty}`
+**Endpoint**: `POST /estoque/disponibilidade`
+
+**Body**:
+
+```json
+{
+  "produtoIds": [1, 2, 3]
+}
+```
 
 **Use Case**: `ConsultarDisponibilidadeUseCase`
 
 **Resposta**:
 
 ```json
-{
-  "produtoId": 1,
-  "disponivel": true,
-  "quantidadeDisponivel": 50,
-  "quantidadeSolicitada": 5
-}
+[
+  {
+    "produtoId": 1,
+    "quantidadeDisponivel": 20,
+    "quantidadeTotal": 15,
+    "quantidadeReservada": 5,
+    "isNivelCritico": false
+  },
+  {
+    "produtoId": 2,
+    "quantidadeDisponivel": 0,
+    "quantidadeTotal": 0,
+    "quantidadeReservada": 0,
+    "isNivelCritico": true
+  }
+]
 ```
 
 ---
