@@ -1,6 +1,6 @@
 # Payment Service - Documentação
 
-## 📋 Sumário
+## Sumário
 
 - [Objetivo e Contextualização](#objetivo-e-contextualização)
 - [Arquitetura e Tecnologias](#arquitetura-e-tecnologias)
@@ -12,7 +12,7 @@
 
 ---
 
-## 🎯 Objetivo e Contextualização
+## Objetivo e Contextualização
 
 O **Payment Service** é o microsserviço responsável por processar pagamentos, integrar com gateways de pagamento externos e gerenciar o ciclo de vida das transações financeiras. Ele implementa estratégias de resiliência como retry com backoff exponencial e garante idempotência para evitar cobranças duplicadas.
 
@@ -29,7 +29,7 @@ Este serviço é crítico para a confiabilidade financeira do sistema, garantind
 
 ---
 
-## 🏗️ Arquitetura e Tecnologias
+## Arquitetura e Tecnologias
 
 ### Stack Tecnológico
 
@@ -91,7 +91,7 @@ app
 
 ---
 
-## 🐳 Docker Compose
+## Docker Compose
 
 ### Configuração do Serviço Principal
 
@@ -270,7 +270,7 @@ class Payment {
 
 ---
 
-## 📐 Regras de Negócio
+## Regras de Negócio
 
 ### RN01 - Retry com Backoff
 
@@ -498,7 +498,7 @@ class EntregaFalhouHandler {
 
 ---
 
-## 📡 Eventos e Mensageria
+## Eventos e Mensageria
 
 ### Eventos Publicados
 
@@ -554,7 +554,7 @@ php artisan rabbitmq:consume
 
 ---
 
-## 🧪 Cobertura de Testes
+## Cobertura de Testes
 
 ### Resumo de Testes
 

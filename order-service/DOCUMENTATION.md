@@ -1,6 +1,6 @@
 # Order Service - Documentação
 
-## 📋 Sumário
+## Sumário
 
 - [Objetivo e Contextualização](#objetivo-e-contextualização)
 - [Arquitetura e Tecnologias](#arquitetura-e-tecnologias)
@@ -12,7 +12,7 @@
 
 ---
 
-## 🎯 Objetivo e Contextualização
+## Objetivo e Contextualização
 
 O **Order Service** é o microsserviço central do sistema de e-commerce, responsável por gerenciar todo o ciclo de vida dos pedidos. Ele atua como orquestrador da saga distribuída, coordenando as interações entre os serviços de estoque (Inventory), pagamento (Payment) e entrega (Delivery).
 
@@ -29,7 +29,7 @@ Este serviço implementa o padrão **Saga** para garantir a consistência eventu
 
 ---
 
-## 🏗️ Arquitetura e Tecnologias
+## Arquitetura e Tecnologias
 
 ### Stack Tecnológico
 
@@ -67,7 +67,7 @@ com.devops.order_service
 
 ---
 
-## 🐳 Docker Compose
+## Docker Compose
 
 ### Configuração do Serviço
 
@@ -123,7 +123,7 @@ db-order:
 
 ---
 
-## ✅ Requisitos Funcionais
+## Requisitos Funcionais
 
 ### RF01 - Criar Pedido
 
@@ -189,7 +189,7 @@ Expor histórico de pedidos por cliente com filtros por status e período.
 
 ---
 
-## 📐 Regras de Negócio
+## Regras de Negócio
 
 ### RN01 - Pedido Mínimo
 
@@ -281,7 +281,7 @@ public void handleStockReservationFailed(Long orderId) {
 
 ---
 
-## 📡 Eventos e Mensageria
+## Eventos e Mensageria
 
 ### Eventos Publicados
 
@@ -318,7 +318,7 @@ rabbitmq.queues.entrega-despachada=order-entrega-despachada
 
 ---
 
-## 🧪 Cobertura de Testes
+## Cobertura de Testes
 
 ### Resumo de Testes
 

@@ -1,6 +1,6 @@
 # Inventory Service - Documentação
 
-## 📋 Sumário
+## Sumário
 
 - [Objetivo e Contextualização](#objetivo-e-contextualização)
 - [Arquitetura e Tecnologias](#arquitetura-e-tecnologias)
@@ -12,7 +12,7 @@
 
 ---
 
-## 🎯 Objetivo e Contextualização
+## Objetivo e Contextualização
 
 O **Inventory Service** é o microsserviço responsável por gerenciar o estoque de produtos e as reservas de itens para pedidos. Ele implementa controle de concorrência otimista com locks distribuídos via Redis para garantir que reservas simultâneas sejam processadas de forma segura e consistente.
 
@@ -29,7 +29,7 @@ Este serviço é crítico para a integridade do sistema, garantindo que produtos
 
 ---
 
-## 🏗️ Arquitetura e Tecnologias
+## Arquitetura e Tecnologias
 
 ### Stack Tecnológico
 
@@ -81,7 +81,7 @@ src
 
 ---
 
-## 🐳 Docker Compose
+## Docker Compose
 
 ### Configuração do Serviço
 
@@ -149,7 +149,7 @@ cache-inventory:
 
 ---
 
-## ✅ Requisitos Funcionais
+## Requisitos Funcionais
 
 ### RF01 - Reservar Itens
 
@@ -234,7 +234,7 @@ Consultar disponibilidade de itens em tempo real antes da reserva.
 
 ---
 
-## 📐 Regras de Negócio
+## Regras de Negócio
 
 ### RN01 - Reserva Otimista com Lock
 
@@ -363,7 +363,7 @@ async execute(input: EstornarReservaInput) {
 
 ---
 
-## 📡 Eventos e Mensageria
+## Eventos e Mensageria
 
 ### Eventos Publicados
 
@@ -408,7 +408,7 @@ const ROUTING_KEYS = {
 
 ---
 
-## 🧪 Cobertura de Testes
+## Cobertura de Testes
 
 ### Resumo de Testes
 
