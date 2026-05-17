@@ -1,4 +1,3 @@
-# Stage builder
 FROM maven:3.9-eclipse-temurin-17-alpine AS builder
 
 WORKDIR /app
@@ -6,11 +5,11 @@ WORKDIR /app
 COPY pom.xml .
 RUN mvn dependency:go-offline -q
 
+ARG CACHEBUST=1
 COPY src ./src
 
-RUN mvn package -DskipTests -q
+RUN mvn package -Dmaven.test.skip=true -q
 
-# Stage runtime
 FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app

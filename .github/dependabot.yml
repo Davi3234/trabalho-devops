@@ -1,0 +1,31 @@
+version: 2
+
+updates:
+  - package-ecosystem: maven
+    directory: /order-service
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+      - order-service
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: docker
+    directory: /order-service
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+      - order-service
+      - docker
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+      - github-actions
