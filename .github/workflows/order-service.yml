@@ -170,27 +170,24 @@ jobs:
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       github.ref == 'refs/heads/develop'
 
-    environment:
-      name: dev
-
     steps:
       - name: Acionar deploy no Render (DEV)
         env:
-          HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          HOOK_URL: ${{ secrets.DEV_RENDER_DEPLOY_HOOK_URL }}
         run: |
           if [ -z "$HOOK_URL" ]; then
-            echo "RENDER_DEPLOY_HOOK_URL não configurado no environment 'dev' — deploy ignorado."
-            echo "Configure em: GitHub → Settings → Environments → dev → Secrets"
+            echo "DEV_RENDER_DEPLOY_HOOK_URL não configurado no repositório — deploy ignorado."
+            echo "Configure em: GitHub → Settings → Secrets and variables → Actions"
             exit 0
           fi
           curl -f -X POST "$HOOK_URL"
 
       - name: Aguardar e verificar health
         env:
-          SERVICE_URL: ${{ secrets.RENDER_SERVICE_URL }}
+          SERVICE_URL: ${{ secrets.DEV_RENDER_SERVICE_URL }}
         run: |
           if [ -z "$SERVICE_URL" ]; then
-            echo "RENDER_SERVICE_URL não configurado — health check ignorado."
+            echo "DEV_RENDER_SERVICE_URL não configurado — health check ignorado."
             exit 0
           fi
           echo "Aguardando deploy no Render"
@@ -206,21 +203,18 @@ jobs:
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       github.ref == 'refs/heads/main'
 
-    environment:
-      name: homol
-
     steps:
       - name: Acionar deploy no Render
         run: |
-          curl -f -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+          curl -f -X POST "${{ secrets.HOMOL_RENDER_DEPLOY_HOOK_URL }}"
 
       - name: Aguardar e verificar health
         env:
-          SERVICE_URL: ${{ secrets.RENDER_SERVICE_URL }}
+          SERVICE_URL: ${{ secrets.HOMOL_RENDER_SERVICE_URL }}
         run: |
           if [ -z "$SERVICE_URL" ]; then
-            echo "RENDER_SERVICE_URL não configurado — health check ignorado."
-            echo "Configure em: GitHub → Settings → Environments → homol → Secrets"
+            echo "HOMOL_RENDER_SERVICE_URL não configurado — health check ignorado."
+            echo "Configure em: GitHub → Settings → Secrets and variables → Actions"
             exit 0
           fi
           echo "Aguardando deploy no Render"
