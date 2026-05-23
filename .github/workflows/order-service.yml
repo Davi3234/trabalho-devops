@@ -136,15 +136,94 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
+      - name: Definir tags da imagem por ambiente
+        id: tags
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "value=${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }},${{ env.IMAGE_NAME }}:latest-homol" >> "$GITHUB_OUTPUT"
+            echo "primary=${{ steps.semver.outputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=${{ env.IMAGE_NAME }}:latest-dev" >> "$GITHUB_OUTPUT"
+            echo "primary=latest-dev" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Build e Push da imagem Docker
         uses: docker/build-push-action@v6
         with:
           context: ./${{ env.SERVICE_DIR }}
           push: true
-          tags: |
-            ${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }}
-            ${{ env.IMAGE_NAME }}:latest
+          tags: ${{ steps.tags.outputs.value }}
+          build-args: |
+            IMAGE_TAG=${{ steps.tags.outputs.primary }}
+            GIT_COMMIT=${{ github.sha }}
+            GIT_BRANCH=${{ github.ref_name }}
           labels: |
             org.opencontainers.image.version=${{ steps.semver.outputs.version }}
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
+
+  deploy-dev:
+    name: Deploy → DEV (Render)
+    runs-on: ubuntu-latest
+    needs: [build-and-test, docker]
+    if: >
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/develop'
+
+    environment:
+      name: dev
+
+    steps:
+      - name: Acionar deploy no Render (DEV)
+        env:
+          HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$HOOK_URL" ]; then
+            echo "RENDER_DEPLOY_HOOK_URL não configurado no environment 'dev' — deploy ignorado."
+            echo "Configure em: GitHub → Settings → Environments → dev → Secrets"
+            exit 0
+          fi
+          curl -f -X POST "$HOOK_URL"
+
+      - name: Aguardar e verificar health
+        env:
+          SERVICE_URL: ${{ secrets.RENDER_SERVICE_URL }}
+        run: |
+          if [ -z "$SERVICE_URL" ]; then
+            echo "RENDER_SERVICE_URL não configurado — health check ignorado."
+            exit 0
+          fi
+          echo "Aguardando deploy no Render"
+          sleep 30
+          curl --retry 10 --retry-delay 15 --fail \
+            "$SERVICE_URL/actuator/health"
+
+  deploy-homol:
+    name: Deploy → HOMOL (Render)
+    runs-on: ubuntu-latest
+    needs: [build-and-test, docker, sonar]
+    if: >
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/main'
+
+    environment:
+      name: homol
+
+    steps:
+      - name: Acionar deploy no Render
+        run: |
+          curl -f -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+
+      - name: Aguardar e verificar health
+        env:
+          SERVICE_URL: ${{ secrets.RENDER_SERVICE_URL }}
+        run: |
+          if [ -z "$SERVICE_URL" ]; then
+            echo "RENDER_SERVICE_URL não configurado — health check ignorado."
+            echo "Configure em: GitHub → Settings → Environments → homol → Secrets"
+            exit 0
+          fi
+          echo "Aguardando deploy no Render"
+          sleep 30
+          curl --retry 10 --retry-delay 15 --fail \
+            "$SERVICE_URL/actuator/health"

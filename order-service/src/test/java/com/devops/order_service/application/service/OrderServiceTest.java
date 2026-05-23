@@ -377,11 +377,11 @@ class OrderServiceTest {
         void withStatusAndDates() {
             LocalDateTime start = LocalDateTime.now().minusDays(7);
             LocalDateTime end = LocalDateTime.now();
-            when(orderRepository.findByFilters(10L, OrderStatus.PAGO.name(), start, end)).thenReturn(List.of());
+            when(orderRepository.findByFilters(10L, OrderStatus.PAGO, start, end)).thenReturn(List.of());
 
             orderService.getOrderHistory(10L, OrderStatus.PAGO, start, end);
 
-            verify(orderRepository).findByFilters(10L, OrderStatus.PAGO.name(), start, end);
+            verify(orderRepository).findByFilters(10L, OrderStatus.PAGO, start, end);
             verifyNoMoreInteractions(orderRepository);
         }
     }

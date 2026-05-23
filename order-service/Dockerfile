@@ -14,6 +14,14 @@ FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
+# Metadados de build injetados pelo CI — ficam disponíveis em /actuator/info
+ARG IMAGE_TAG=unknown
+ARG GIT_COMMIT=unknown
+ARG GIT_BRANCH=unknown
+ENV DOCKER_IMAGE_TAG=${IMAGE_TAG}
+ENV GIT_COMMIT=${GIT_COMMIT}
+ENV GIT_BRANCH=${GIT_BRANCH}
+
 COPY --from=builder /app/target/*.jar app.jar
 
 EXPOSE 8080

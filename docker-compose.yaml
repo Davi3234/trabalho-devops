@@ -63,12 +63,12 @@ services:
       context: ./order-service
     env_file:
       - ./order-service/.env
+    environment:
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
     ports:
       - 8080:8080
     depends_on:
       db-order:
-        condition: service_healthy
-      rabbitmq:
         condition: service_healthy
     networks:
       - app-network
