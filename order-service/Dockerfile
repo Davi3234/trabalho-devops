@@ -14,7 +14,6 @@ FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
-# Metadados de build injetados pelo CI — ficam disponíveis em /actuator/info
 ARG IMAGE_TAG=unknown
 ARG GIT_COMMIT=unknown
 ARG GIT_BRANCH=unknown
