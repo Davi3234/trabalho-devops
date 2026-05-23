@@ -31,6 +31,15 @@ public class OrderStateService {
     }
 
     @Transactional
+    public void handleStockReserved(Long orderId) {
+        Order order = findOrder(orderId);
+        order.setStatus(OrderStatus.RESERVADO);
+        orderRepository.save(order);
+        eventPublisher.publishOrderAprove(order);
+        log.info("Pedido {} aprovado", orderId);
+    }
+
+    @Transactional
     public void handlePaymentRejected(Long orderId) {
         Order order = findOrder(orderId);
         order.setStatus(OrderStatus.CANCELADO);
