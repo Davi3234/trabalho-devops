@@ -124,7 +124,7 @@ public class OrderService {
         if (!hasDateFilter) {
             return orderRepository.findByCustomerIdAndStatusOrderByCreatedAtDesc(customerId, status);
         }
-        return orderRepository.findByFilters(customerId, status.name(), startDate, endDate);
+        return orderRepository.findByFilters(customerId, status, startDate, endDate);
     }
 
     private BigDecimal applyCoupon(String couponCode, Long customerId, BigDecimal itemsTotal) {
