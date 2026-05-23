@@ -8,9 +8,13 @@ RUN mvn -B -T 1C dependency:go-offline -q
 ARG CACHEBUST=1
 COPY src ./src
 
+<<<<<<< HEAD
 RUN mvn -B -T 1C package -Dmaven.test.skip=true -q
 
 RUN java -Djarmode=layertools -jar target/*.jar extract
+=======
+RUN mvn package -Dmaven.test.skip=true -q
+>>>>>>> origin/main
 
 FROM eclipse-temurin:17-jre-alpine
 

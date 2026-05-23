@@ -23,18 +23,27 @@ jobs:
 
     steps:
       - name: Checkout
+<<<<<<< HEAD
         uses: actions/checkout@v6.0.2
+=======
+        uses: actions/checkout@v4
+>>>>>>> origin/main
         with:
           fetch-depth: 0
 
       - name: Setup Java 17
+<<<<<<< HEAD
         uses: actions/setup-java@v5.2.0
+=======
+        uses: actions/setup-java@v4
+>>>>>>> origin/main
         with:
           distribution: temurin
           java-version: "17"
           cache: maven
 
       - name: Build (sem testes)
+<<<<<<< HEAD
         run: mvn -T 1C -B package -DskipTests -f ${{ env.SERVICE_DIR }}/pom.xml
 
       - name: Executar testes
@@ -43,6 +52,16 @@ jobs:
       - name: Publicar relatório de testes
         if: always()
         uses: actions/upload-artifact@v7.0.1
+=======
+        run: mvn -B package -DskipTests -f ${{ env.SERVICE_DIR }}/pom.xml
+
+      - name: Executar testes
+        run: mvn -B test -f ${{ env.SERVICE_DIR }}/pom.xml
+
+      - name: Publicar relatório de testes
+        if: always()
+        uses: actions/upload-artifact@v4
+>>>>>>> origin/main
         with:
           name: test-results
           path: ${{ env.SERVICE_DIR }}/target/surefire-reports/
@@ -54,12 +73,20 @@ jobs:
 
     steps:
       - name: Checkout
+<<<<<<< HEAD
         uses: actions/checkout@v6.0.2
+=======
+        uses: actions/checkout@v4
+>>>>>>> origin/main
         with:
           fetch-depth: 0
 
       - name: Setup Java 17
+<<<<<<< HEAD
         uses: actions/setup-java@v5.2.0
+=======
+        uses: actions/setup-java@v4
+>>>>>>> origin/main
         with:
           distribution: temurin
           java-version: "17"
@@ -91,7 +118,11 @@ jobs:
 
     steps:
       - name: Checkout
+<<<<<<< HEAD
         uses: actions/checkout@v6.0.2
+=======
+        uses: actions/checkout@v4
+>>>>>>> origin/main
         with:
           fetch-depth: 0
 
@@ -121,21 +152,33 @@ jobs:
           git push origin "order-service/v${{ steps.semver.outputs.version }}"
 
       - name: Setup Java 17 (para build do JAR final)
+<<<<<<< HEAD
         uses: actions/setup-java@v5.2.0
+=======
+        uses: actions/setup-java@v4
+>>>>>>> origin/main
         with:
           distribution: temurin
           java-version: "17"
           cache: maven
 
       - name: Build JAR
+<<<<<<< HEAD
         run: mvn -T 1C -B package -DskipTests -f ${{ env.SERVICE_DIR }}/pom.xml
 
       - name: Login no Docker Hub
         uses: docker/login-action@v4.2.0
+=======
+        run: mvn -B package -DskipTests -f ${{ env.SERVICE_DIR }}/pom.xml
+
+      - name: Login no Docker Hub
+        uses: docker/login-action@v3
+>>>>>>> origin/main
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
+<<<<<<< HEAD
       - name: Definir tags da imagem por ambiente
         id: tags
         run: |
@@ -159,10 +202,21 @@ jobs:
             IMAGE_TAG=${{ steps.tags.outputs.primary }}
             GIT_COMMIT=${{ github.sha }}
             GIT_BRANCH=${{ github.ref_name }}
+=======
+      - name: Build e Push da imagem Docker
+        uses: docker/build-push-action@v6
+        with:
+          context: ./${{ env.SERVICE_DIR }}
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }}
+            ${{ env.IMAGE_NAME }}:latest
+>>>>>>> origin/main
           labels: |
             org.opencontainers.image.version=${{ steps.semver.outputs.version }}
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
+<<<<<<< HEAD
 
   deploy-dev:
     name: Deploy → DEV (Render)
@@ -227,3 +281,5 @@ jobs:
           sleep 40
           curl --retry 10 --retry-delay 15 --fail \
             "$SERVICE_URL/actuator/health"
+=======
+>>>>>>> origin/main

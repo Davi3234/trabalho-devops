@@ -29,23 +29,38 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         @EntityGraph(attributePaths = "items")
         List<Order> findByCustomerIdAndStatusOrderByCreatedAtDesc(Long customerId, OrderStatus status);
 
+<<<<<<< HEAD
         @EntityGraph(attributePaths = "items")
         @Query("SELECT o FROM Order o WHERE o.customerId = :customerId " +
                         "AND o.status = :status " +
                         "AND (:startDate IS NULL OR o.createdAt >= :startDate) " +
                         "AND (:endDate IS NULL OR o.createdAt <= :endDate) " +
                         "ORDER BY o.createdAt DESC")
+=======
+        @Query(value = "SELECT * FROM orders WHERE customer_id = :customerId " +
+                        "AND status = :status " +
+                        "AND (CAST(:startDate AS timestamp) IS NULL OR created_at >= CAST(:startDate AS timestamp)) " +
+                        "AND (CAST(:endDate AS timestamp) IS NULL OR created_at <= CAST(:endDate AS timestamp)) " +
+                        "ORDER BY created_at DESC", nativeQuery = true)
+>>>>>>> origin/main
         List<Order> findByFilters(
                         @Param("customerId") Long customerId,
-                        @Param("status") OrderStatus status,
+                        @Param("status") String status,
                         @Param("startDate") LocalDateTime startDate,
                         @Param("endDate") LocalDateTime endDate);
 
+<<<<<<< HEAD
         @EntityGraph(attributePaths = "items")
         @Query("SELECT o FROM Order o WHERE o.customerId = :customerId " +
                         "AND (:startDate IS NULL OR o.createdAt >= :startDate) " +
                         "AND (:endDate IS NULL OR o.createdAt <= :endDate) " +
                         "ORDER BY o.createdAt DESC")
+=======
+        @Query(value = "SELECT * FROM orders WHERE customer_id = :customerId " +
+                        "AND (CAST(:startDate AS timestamp) IS NULL OR created_at >= CAST(:startDate AS timestamp)) " +
+                        "AND (CAST(:endDate AS timestamp) IS NULL OR created_at <= CAST(:endDate AS timestamp)) " +
+                        "ORDER BY created_at DESC", nativeQuery = true)
+>>>>>>> origin/main
         List<Order> findByCustomerIdAndDateRange(
                         @Param("customerId") Long customerId,
                         @Param("startDate") LocalDateTime startDate,

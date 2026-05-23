@@ -1,24 +1,27 @@
+import { RabbitMQModule as RabbitMQModuleConfig } from '@golevelup/nestjs-rabbitmq'
 import { Module } from '@nestjs/common'
-import { ClientsModule, Transport } from '@nestjs/microservices'
+import { ConfigModule, ConfigService } from '@nestjs/config'
 
 import { EVENT_PUBLISHER_TOKEN } from '@application/ports/event-publisher.port'
 import { RabbitMQPublisher } from '@infrastructure/ports/rabbitmq-publisher'
-import { RABBITMQ_CLIENT_TOKEN } from '@infrastructure/rabbitmq.token'
 import { env } from '@shared/env'
 
 @Module({
   imports: [
-    ClientsModule.register([
-      {
-        name: RABBITMQ_CLIENT_TOKEN,
-        transport: Transport.RMQ,
-        options: {
-          urls: [env('RABBITMQ_URL', 'amqp://localhost')],
-          queue: 'estoque_publisher',
-          queueOptions: { durable: true },
-        },
-      },
-    ]),
+    RabbitMQModuleConfig.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        uri: env('RABBITMQ_URL', 'amqp://localhost'),
+        exchanges: [
+          {
+            name: 'inventory.events',
+            type: 'topic',
+          },
+        ],
+        connectionInitOptions: { wait: true, timeout: 20000 },
+      }),
+    }),
   ],
   providers: [
     RabbitMQPublisher,
