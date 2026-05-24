@@ -4,7 +4,7 @@ export class NivelCriticoEstoqueEvent implements DomainEvent {
 
   readonly eventId: string
   readonly occurredAt: Date
-  readonly eventName = 'estoque.nivel_critico'
+  readonly eventName = 'inventory.estoque.nivel_critico'
 
   constructor(
     public readonly produtoId: number,

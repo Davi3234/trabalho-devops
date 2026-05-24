@@ -1,0 +1,223 @@
+{
+  "rabbit_version": "3.13.7",
+  "rabbitmq_version": "3.13.7",
+  "product_name": "RabbitMQ",
+  "product_version": "3.13.7",
+  "users": [
+    {
+      "name": "admin",
+      "password_hash": "LPueU7zwGzqDYOZyfI32v2L3OMWhBBeeZY+AU3Z5aXZd8Onh",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": [
+        "administrator"
+      ],
+      "limits": {}
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/",
+      "description": "Default virtual host",
+      "tags": [],
+      "metadata": {
+        "description": "Default virtual host",
+        "tags": []
+      }
+    }
+  ],
+  "permissions": [
+    {
+      "user": "admin",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "topic_permissions": [],
+  "parameters": [],
+  "global_parameters": [
+    {
+      "name": "internal_cluster_id",
+      "value": "rabbitmq-cluster-id-PWwIxYzu5NKFlqTakUM2QA"
+    }
+  ],
+  "policies": [],
+  "queues": [
+    {
+      "name": "payment.pedido.aprovado",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "order.reserva.falhou",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "order.pagamento.recusado",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "order.estoque.reservado",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "inventory.pedido.criado",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "order.entrega.despachada",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "order.pagamento.confirmado",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "inventory.pedido.pago",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "inventory.pedido.cancelado",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "order.events",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "inventory.events",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "delivery.events",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "payment.events",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "inventory.events",
+      "vhost": "/",
+      "destination": "order.estoque.reservado",
+      "destination_type": "queue",
+      "routing_key": "inventory.estoque.reservado",
+      "arguments": {}
+    },
+    {
+      "source": "inventory.events",
+      "vhost": "/",
+      "destination": "order.reserva.falhou",
+      "destination_type": "queue",
+      "routing_key": "inventory.reserva.falhou",
+      "arguments": {}
+    },
+    {
+      "source": "order.events",
+      "vhost": "/",
+      "destination": "order.entrega.despachada",
+      "destination_type": "queue",
+      "routing_key": "delivery.entrega.despachada",
+      "arguments": {}
+    },
+    {
+      "source": "order.events",
+      "vhost": "/",
+      "destination": "payment.pedido.aprovado",
+      "destination_type": "queue",
+      "routing_key": "order.pedido.aprovado",
+      "arguments": {}
+    },
+    {
+      "source": "order.events",
+      "vhost": "/",
+      "destination": "inventory.pedido.cancelado",
+      "destination_type": "queue",
+      "routing_key": "order.pedido.cancelado",
+      "arguments": {}
+    },
+    {
+      "source": "order.events",
+      "vhost": "/",
+      "destination": "inventory.pedido.criado",
+      "destination_type": "queue",
+      "routing_key": "order.pedido.criado",
+      "arguments": {}
+    },
+    {
+      "source": "order.events",
+      "vhost": "/",
+      "destination": "inventory.pedido.pago",
+      "destination_type": "queue",
+      "routing_key": "order.pedido.pago",
+      "arguments": {}
+    },
+    {
+      "source": "payment.events",
+      "vhost": "/",
+      "destination": "order.pagamento.confirmado",
+      "destination_type": "queue",
+      "routing_key": "payment.pagamento.confirmado",
+      "arguments": {}
+    },
+    {
+      "source": "payment.events",
+      "vhost": "/",
+      "destination": "order.pagamento.recusado",
+      "destination_type": "queue",
+      "routing_key": "payment.pagamento.recusado",
+      "arguments": {}
+    }
+  ]
+}

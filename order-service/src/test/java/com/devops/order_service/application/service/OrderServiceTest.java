@@ -7,7 +7,6 @@ import com.devops.order_service.domain.repository.CouponRepository;
 import com.devops.order_service.domain.repository.CouponUsageRepository;
 import com.devops.order_service.domain.repository.OrderRepository;
 import com.devops.order_service.infrastructure.messaging.OrderEventPublisher;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

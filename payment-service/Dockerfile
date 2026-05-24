@@ -27,9 +27,6 @@ RUN composer dump-autoload --optimize
 
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache 2>/dev/null || true
 
-EXPOSE 9000
-CMD ["php-fpm"]
-
 FROM php:8.2-fpm-alpine AS development
 
 RUN apk add --no-cache \
@@ -55,3 +52,7 @@ COPY config/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN dos2unix /usr/local/bin/entrypoint.sh && chmod +x /usr/local/bin/entrypoint.sh
 
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache 2>/dev/null || true
+
+EXPOSE 9000
+
+ENTRYPOINT [ "/usr/local/bin/entrypoint.sh" ]
