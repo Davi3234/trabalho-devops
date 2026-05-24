@@ -62,3 +62,34 @@ export class EntradaEstoqueResponse {
   @ApiProperty({ type: [EntradaProdutoAtualizadoResponse] })
   produtosAtualizados: EntradaProdutoAtualizadoResponse[]
 }
+
+export class ReservarItemRequest {
+  @ApiProperty({ description: 'ID do produto', example: 1, minimum: 1 })
+  produtoId: number
+
+  @ApiProperty({ description: 'Quantidade a reservar', example: 2, minimum: 1 })
+  quantidade: number
+}
+
+export class ReservarItensRequest {
+  @ApiProperty({ description: 'ID do pedido', example: 42, minimum: 1 })
+  pedidoId: number
+
+  @ApiProperty({
+    description: 'Lista de itens a reservar',
+    type: [ReservarItemRequest],
+    minItems: 1,
+  })
+  itens: ReservarItemRequest[]
+}
+
+export class ReservarItensResponse {
+  @ApiProperty({ description: 'ID do pedido', example: 42 })
+  pedidoId: number
+
+  @ApiProperty({ description: 'ID da reserva criada', example: 7 })
+  reservaId: number
+
+  @ApiProperty({ description: 'Data/hora de expiração da reserva', example: '2026-05-24T15:30:00.000Z' })
+  expiradoEm: Date
+}

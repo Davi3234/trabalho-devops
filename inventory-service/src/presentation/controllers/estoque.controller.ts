@@ -5,14 +5,19 @@ import type { ConsultarDisponibilidadeInput } from '@application/dto/consultar-d
 import { consultarDisponibilidadeSchema } from '@application/dto/consultar-disponibilidade.dto'
 import type { EntradaEstoqueInput } from '@application/dto/entrada-estoque.dto'
 import { entradaEstoqueSchema } from '@application/dto/entrada-estoque.dto'
+import type { ReservarItensInput } from '@application/dto/reservar-itens.dto'
+import { reservarItensSchema } from '@application/dto/reservar-itens.dto'
 import { ConsultarDisponibilidadeUseCase } from '@application/use-cases/consultar-disponibilidade.use-case'
 import { EntradaEstoqueUseCase } from '@application/use-cases/entrada-estoque.use-case'
+import { ReservarItensUseCase } from '@application/use-cases/reservar-itens.use-case'
 import { MetricsService } from '@infrastructure/metrics/metrics.service'
 import {
   ConsultarDisponibilidadeRequest,
   ConsultarDisponibilidadeResponse,
   EntradaEstoqueRequest,
   EntradaEstoqueResponse,
+  ReservarItensRequest,
+  ReservarItensResponse,
 } from '@presentation/docs/estoque.dto.swagger'
 import { ZodValidationPipe } from '@presentation/pipes/zod-validation.pipe'
 
@@ -23,6 +28,7 @@ export class EstoqueController {
   constructor(
     private readonly consultarDisponibilidade: ConsultarDisponibilidadeUseCase,
     private readonly entradaEstoque: EntradaEstoqueUseCase,
+    private readonly reservarItens: ReservarItensUseCase,
     private readonly metricsService: MetricsService,
   ) { }
 
@@ -51,6 +57,20 @@ export class EstoqueController {
       this.metricsService.recordStockQuery('error')
       throw error
     }
+  }
+
+  @Post('/reservar')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Reservar itens de estoque',
+    description: 'Reserva os itens de um pedido no estoque, verificando disponibilidade e aplicando lock distribuído para evitar condições de corrida.',
+  })
+  @ApiBody({ type: ReservarItensRequest })
+  @ApiResponse({ status: 201, description: 'Reserva criada com sucesso', type: ReservarItensResponse })
+  @ApiResponse({ status: 400, description: 'Estoque insuficiente ou dados inválidos' })
+  @ApiResponse({ status: 500, description: 'Erro interno do servidor' })
+  async reservar(@Body(new ZodValidationPipe(reservarItensSchema)) body: ReservarItensInput) {
+    return this.reservarItens.execute(body)
   }
 
   @Post('/entrada')
