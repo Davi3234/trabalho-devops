@@ -3,11 +3,13 @@ package com.devops.order_service.application.dto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -28,6 +30,12 @@ public class CreateOrderRequest {
     private BigDecimal shippingCost;
 
     private String couponCode;
+
+    @NotNull(message = "paymentMethod é obrigatório")
+    @Pattern(regexp = "credit_card|pix|boleto", message = "paymentMethod deve ser credit_card, pix ou boleto")
+    private String paymentMethod;
+
+    private Map<String, Object> paymentData;
 
     @Getter
     @Setter

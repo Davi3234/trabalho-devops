@@ -6,6 +6,8 @@ import com.devops.order_service.domain.entity.*;
 import com.devops.order_service.domain.repository.CouponRepository;
 import com.devops.order_service.domain.repository.CouponUsageRepository;
 import com.devops.order_service.domain.repository.OrderRepository;
+import com.devops.order_service.application.client.InventoryClient;
+import com.devops.order_service.application.client.PaymentClient;
 import com.devops.order_service.infrastructure.messaging.OrderEventPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +29,8 @@ public class OrderService {
     private final CouponRepository couponRepository;
     private final CouponUsageRepository couponUsageRepository;
     private final OrderEventPublisher eventPublisher;
+    private final InventoryClient inventoryClient;
+    private final PaymentClient paymentClient;
 
     private static final BigDecimal MINIMUM_ORDER_VALUE = new BigDecimal("10.00");
 
@@ -65,6 +69,10 @@ public class OrderService {
         order.setTotalAmount(itemsTotal.subtract(discount).add(request.getShippingCost()));
 
         Order savedOrder = orderRepository.save(order);
+
+        inventoryClient.validarDisponibilidade(request.getItems());
+        paymentClient.processarPagamento(savedOrder.getId(), savedOrder.getTotalAmount(), request.getPaymentMethod(), request.getPaymentData());
+        inventoryClient.reservarItens(savedOrder.getId(), request.getItems());
 
         eventPublisher.publishOrderCreated(savedOrder);
         log.info("Pedido {} criado com sucesso para cliente {}", savedOrder.getId(), savedOrder.getCustomerId());
