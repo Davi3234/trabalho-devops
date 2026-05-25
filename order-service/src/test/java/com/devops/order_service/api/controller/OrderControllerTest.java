@@ -56,6 +56,7 @@ class OrderControllerTest {
                 {
                   "customerId": 456,
                   "shippingCost": 10.0,
+                  "paymentMethod": "credit_card",
                   "items": [
                     {
                       "productId": 123,
@@ -121,6 +122,26 @@ class OrderControllerTest {
                     .content(body))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.details.items").exists());
+        }
+
+        @Test
+        @DisplayName("400 Bad Request quando paymentMethod está ausente")
+        void returns400WhenPaymentMethodMissing() throws Exception {
+            String body = """
+                    {
+                      "customerId": 456,
+                      "shippingCost": 10.0,
+                      "items": [
+                        { "productId": 1, "productName": "P", "unitPrice": 50.0, "quantity": 1 }
+                      ]
+                    }
+                    """;
+
+            mockMvc.perform(post("/api/orders")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(body))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.details.paymentMethod").exists());
         }
 
         @Test

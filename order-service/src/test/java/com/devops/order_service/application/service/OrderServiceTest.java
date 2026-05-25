@@ -1,5 +1,7 @@
 package com.devops.order_service.application.service;
 
+import com.devops.order_service.application.client.InventoryClient;
+import com.devops.order_service.application.client.PaymentClient;
 import com.devops.order_service.application.dto.CreateOrderRequest;
 import com.devops.order_service.application.exception.*;
 import com.devops.order_service.domain.entity.*;
@@ -23,6 +25,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,6 +43,12 @@ class OrderServiceTest {
     @Mock
     private OrderEventPublisher eventPublisher;
 
+    @Mock
+    private InventoryClient inventoryClient;
+
+    @Mock
+    private PaymentClient paymentClient;
+
     @InjectMocks
     private OrderService orderService;
 
@@ -54,6 +63,7 @@ class OrderServiceTest {
         return CreateOrderRequest.builder()
                 .customerId(10L)
                 .shippingCost(BigDecimal.valueOf(5.0))
+                .paymentMethod("credit_card")
                 .items(List.of(item))
                 .build();
     }
@@ -77,7 +87,7 @@ class OrderServiceTest {
     class CreateOrder {
 
         @Test
-        @DisplayName("cria pedido com sucesso e publica evento")
+        @DisplayName("cria pedido com sucesso, chama inventory e payment, e publica evento")
         void success() {
             CreateOrderRequest req = buildRequest(50.0, 2);
             Order persisted = savedOrder(1L);
@@ -88,6 +98,9 @@ class OrderServiceTest {
             assertThat(result).isNotNull();
             assertThat(result.getId()).isEqualTo(1L);
             verify(orderRepository).save(any(Order.class));
+            verify(inventoryClient).validarDisponibilidade(req.getItems());
+            verify(paymentClient).processarPagamento(eq(1L), any(), eq("credit_card"), any());
+            verify(inventoryClient).reservarItens(eq(1L), req.getItems());
             verify(eventPublisher).publishOrderCreated(persisted);
         }
 
@@ -99,7 +112,42 @@ class OrderServiceTest {
             assertThatThrownBy(() -> orderService.createOrder(req))
                     .isInstanceOf(MinimumOrderValueException.class);
 
-            verifyNoInteractions(orderRepository, eventPublisher);
+            verifyNoInteractions(orderRepository, inventoryClient, paymentClient, eventPublisher);
+        }
+
+        @Test
+        @DisplayName("lança StockUnavailableException quando inventário recusa disponibilidade")
+        void throwsWhenStockUnavailable() {
+            CreateOrderRequest req = buildRequest(50.0, 2);
+            when(orderRepository.save(any())).thenReturn(savedOrder(1L));
+            doThrow(new StockUnavailableException("Estoque insuficiente para o produto 1"))
+                    .when(inventoryClient).validarDisponibilidade(any());
+
+            assertThatThrownBy(() -> orderService.createOrder(req))
+                    .isInstanceOf(StockUnavailableException.class)
+                    .hasMessageContaining("produto 1");
+
+            verify(inventoryClient).validarDisponibilidade(any());
+            verifyNoInteractions(paymentClient, eventPublisher);
+            verify(inventoryClient, never()).reservarItens(any(), any());
+        }
+
+        @Test
+        @DisplayName("lança PaymentProcessingException quando pagamento é recusado")
+        void throwsWhenPaymentFails() {
+            CreateOrderRequest req = buildRequest(50.0, 2);
+            when(orderRepository.save(any())).thenReturn(savedOrder(1L));
+            doThrow(new PaymentProcessingException("Pagamento recusado"))
+                    .when(paymentClient).processarPagamento(any(), any(), any(), any());
+
+            assertThatThrownBy(() -> orderService.createOrder(req))
+                    .isInstanceOf(PaymentProcessingException.class)
+                    .hasMessageContaining("recusado");
+
+            verify(inventoryClient).validarDisponibilidade(any());
+            verify(paymentClient).processarPagamento(any(), any(), any(), any());
+            verify(inventoryClient, never()).reservarItens(any(), any());
+            verifyNoInteractions(eventPublisher);
         }
 
         @Test
@@ -108,6 +156,7 @@ class OrderServiceTest {
             CreateOrderRequest req = CreateOrderRequest.builder()
                     .customerId(10L)
                     .shippingCost(BigDecimal.valueOf(5.0))
+                    .paymentMethod("pix")
                     .couponCode("DESC10")
                     .items(List.of(CreateOrderRequest.OrderItemRequest.builder()
                             .productId(1L).productName("P").unitPrice(BigDecimal.valueOf(100.0)).quantity(1).build()))
