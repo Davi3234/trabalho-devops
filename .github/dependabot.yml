@@ -21,6 +21,26 @@ updates:
       - order-service
       - docker
 
+  - package-ecosystem: npm
+    directory: /inventory-service
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+      - inventory-service
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: docker
+    directory: /inventory-service
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+      - inventory-service
+      - docker
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
