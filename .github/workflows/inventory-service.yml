@@ -1,0 +1,253 @@
+name: Inventory Service — CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "inventory-service/**"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "inventory-service/**"
+  workflow_dispatch:
+
+env:
+  SERVICE_DIR: inventory-service
+  IMAGE_NAME: ${{ secrets.DOCKER_HUB_USERNAME }}/inventory-service
+  NODE_VERSION: "20"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 1. Build & Test
+  #    Porta de entrada: garante que o código compila e os testes passam.
+  #    Sonar e Docker só avançam se este job tiver sucesso.
+  # ─────────────────────────────────────────────────────────────────────────────
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ${{ env.SERVICE_DIR }}/package-lock.json
+
+      - name: Instalar dependências
+        working-directory: ${{ env.SERVICE_DIR }}
+        run: npm ci
+
+      - name: Build
+        working-directory: ${{ env.SERVICE_DIR }}
+        run: npm run build
+
+      - name: Executar testes
+        working-directory: ${{ env.SERVICE_DIR }}
+        run: npm run test
+
+      - name: Publicar relatório de testes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: ${{ env.SERVICE_DIR }}/coverage/
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 2. SonarCloud Analysis
+  #    Re-executa os testes gerando cobertura em formato LCOV para o Sonar.
+  #    Depende de build-and-test (gate de qualidade).
+  # ─────────────────────────────────────────────────────────────────────────────
+  sonar:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ${{ env.SERVICE_DIR }}/package-lock.json
+
+      - name: Instalar dependências
+        working-directory: ${{ env.SERVICE_DIR }}
+        run: npm ci
+
+      - name: Executar testes com cobertura (LCOV)
+        working-directory: ${{ env.SERVICE_DIR }}
+        run: >
+          npx vitest run
+          --coverage
+          --coverage.reporter=lcov
+          --coverage.reporter=text
+          --coverage.reportsDirectory=coverage
+
+      - name: Analisar com SonarCloud
+        uses: SonarSource/sonarcloud-github-action@v3
+        env:
+          SONAR_TOKEN: ${{ secrets.INVENTORY_SONAR_TOKEN }}
+        with:
+          projectBaseDir: ${{ env.SERVICE_DIR }}
+          args: >
+            -Dsonar.organization=${{ secrets.INVENTORY_SONAR_ORGANIZATION }}
+            -Dsonar.projectKey=${{ secrets.INVENTORY_SONAR_PROJECT_KEY }}
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 3. Docker Build & Push
+  #    Constrói a imagem UMA vez e aplica tags por ambiente.
+  #    develop → latest-dev  (publicação de homologação)
+  #    main    → <semver> + latest-homol (promoção de artefato)
+  # ─────────────────────────────────────────────────────────────────────────────
+  docker:
+    name: Docker Build & Push
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: write
+
+    outputs:
+      version: ${{ steps.semver.outputs.version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calcular próxima versão semântica
+        id: semver
+        run: |
+          LAST_TAG=$(git tag --list "inventory-service/v*" --sort=-version:refname | head -n 1)
+
+          if [ -z "$LAST_TAG" ]; then
+            VERSION="1.0.0"
+          else
+            VERSION_CORE=${LAST_TAG#inventory-service/v}
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION_CORE"
+            PATCH=$((PATCH + 1))
+            VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Versão calculada: $VERSION"
+
+      - name: Criar e empurrar tag Git
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "inventory-service/v${{ steps.semver.outputs.version }}"
+          git push origin "inventory-service/v${{ steps.semver.outputs.version }}"
+
+      - name: Login no Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Definir tags da imagem por ambiente
+        id: tags
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "value=${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }},${{ env.IMAGE_NAME }}:latest-homol" >> "$GITHUB_OUTPUT"
+            echo "primary=${{ steps.semver.outputs.version }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=${{ env.IMAGE_NAME }}:latest-dev" >> "$GITHUB_OUTPUT"
+            echo "primary=latest-dev" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build e Push da imagem Docker
+        uses: docker/build-push-action@v6
+        with:
+          context: ./${{ env.SERVICE_DIR }}
+          push: true
+          tags: ${{ steps.tags.outputs.value }}
+          labels: |
+            org.opencontainers.image.version=${{ steps.semver.outputs.version }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 4. Deploy → DEV
+  #    Acionado somente em push na branch develop.
+  #    Usa a imagem :latest-dev criada no job docker.
+  # ─────────────────────────────────────────────────────────────────────────────
+  deploy-dev:
+    name: Deploy → DEV (Render)
+    runs-on: ubuntu-latest
+    needs: [build-and-test, docker]
+    if: >
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/develop'
+
+    steps:
+      - name: Acionar deploy no Render (DEV)
+        env:
+          HOOK_URL: ${{ secrets.INVENTORY_DEV_RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$HOOK_URL" ]; then
+            echo "INVENTORY_DEV_RENDER_DEPLOY_HOOK_URL não configurado — deploy ignorado."
+            echo "Configure em: GitHub → Settings → Secrets and variables → Actions"
+            exit 0
+          fi
+          curl -f -X POST "$HOOK_URL"
+
+      - name: Aguardar e verificar health
+        env:
+          SERVICE_URL: ${{ secrets.INVENTORY_DEV_RENDER_SERVICE_URL }}
+        run: |
+          if [ -z "$SERVICE_URL" ]; then
+            echo "INVENTORY_DEV_RENDER_SERVICE_URL não configurado — health check ignorado."
+            exit 0
+          fi
+          echo "Aguardando deploy no Render"
+          sleep 30
+          curl --retry 10 --retry-delay 15 --fail \
+            "$SERVICE_URL/health"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # 5. Deploy → HOMOL
+  #    Acionado somente em push na branch main.
+  #    Usa a imagem :<semver> / :latest-homol criada no job docker.
+  #    Aguarda o Sonar passar antes de promover (necessário para ambientes regulados).
+  # ─────────────────────────────────────────────────────────────────────────────
+  deploy-homol:
+    name: Deploy → HOMOL (Render)
+    runs-on: ubuntu-latest
+    needs: [build-and-test, docker, sonar]
+    if: >
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Acionar deploy no Render
+        run: |
+          curl -f -X POST "${{ secrets.INVENTORY_HOMOL_RENDER_DEPLOY_HOOK_URL }}"
+
+      - name: Aguardar e verificar health
+        env:
+          SERVICE_URL: ${{ secrets.INVENTORY_HOMOL_RENDER_SERVICE_URL }}
+        run: |
+          if [ -z "$SERVICE_URL" ]; then
+            echo "INVENTORY_HOMOL_RENDER_SERVICE_URL não configurado — health check ignorado."
+            echo "Configure em: GitHub → Settings → Secrets and variables → Actions"
+            exit 0
+          fi
+          echo "Aguardando deploy no Render"
+          sleep 30
+          curl --retry 10 --retry-delay 15 --fail \
+            "$SERVICE_URL/health"
