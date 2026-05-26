@@ -5,15 +5,13 @@ RUN apk add --no-cache \
     libzip-dev \
     unzip \
     curl \
-    linux-headers
-
-RUN docker-php-ext-install \
-    pdo \
-    pdo_pgsql \
-    zip \
-    pcntl \
-    bcmath \
-    sockets
+    linux-headers \
+    autoconf \
+    g++ \
+    make \
+ && docker-php-ext-install pdo pdo_pgsql zip pcntl bcmath sockets \
+ && pecl install apcu \
+ && docker-php-ext-enable apcu
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
@@ -36,13 +34,9 @@ RUN apk add --no-cache \
     curl \
     linux-headers
 
-RUN docker-php-ext-install \
-    pdo \
-    pdo_pgsql \
-    zip \
-    pcntl \
-    bcmath \
-    sockets
+# Copia extensões compiladas do builder
+COPY --from=builder /usr/local/lib/php/extensions/ /usr/local/lib/php/extensions/
+COPY --from=builder /usr/local/etc/php/conf.d/ /usr/local/etc/php/conf.d/
 
 WORKDIR /var/www
 

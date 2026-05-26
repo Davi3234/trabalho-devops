@@ -8,6 +8,11 @@ scrape_configs:
     static_configs:
       - targets:
           - order-service:8080
+  - job_name: payment-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - payment-nginx:5002
   # Demais serviços podem adicionar blocos abaixo:
   # - job_name: inventory-service
   #   metrics_path: /metrics  # ajuste para o seu serviço.

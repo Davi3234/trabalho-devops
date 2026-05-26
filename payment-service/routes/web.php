@@ -17,6 +17,9 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
+// Prometheus metrics endpoint
+$router->get('/actuator/prometheus', '\App\Interfaces\Http\Controller\MetricsController');
+
 $router->group(['namespace' => '\App\Interfaces\Http\Controller'], function () use ($router) {
     $router->post('/process', 'PaymentController@process');
     $router->post('/events/stock-reserved', 'PaymentController@handleStockReserved');
