@@ -102,9 +102,9 @@ jobs:
       - name: Executar testes com cobertura
         working-directory: ${{ env.SERVICE_DIR }}
         env:
-          APP_ENV: testing
+          XDEBUG_MODE: coverage
         run: |
-          php artisan test \
+          ./vendor/bin/phpunit \
             --coverage-clover=coverage.xml \
             --log-junit=junit.xml
 
