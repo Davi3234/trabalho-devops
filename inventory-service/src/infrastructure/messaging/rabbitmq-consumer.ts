@@ -56,6 +56,8 @@ export class RabbitMQConsumer {
       this.metricsService.recordMessagingEvent(EVENT_PEDIDO_CRIADO, 'success', Date.now() - start)
       this.metricsService.recordReservation('success')
     } catch (error: any) {
+      this.logger.log(`Erro ao processar pedido.criado [pedido: ${payload.orderId}]`)
+
       this.metricsService.recordMessagingEvent(EVENT_PEDIDO_CRIADO, 'error', Date.now() - start)
       this.metricsService.recordReservation('error')
     }
@@ -104,6 +106,8 @@ export class RabbitMQConsumer {
       this.metricsService.recordMessagingEvent(EVENT_PEDIDO_PAGO, 'success', Date.now() - start)
       this.metricsService.recordConfirmation('success')
     } catch (error: any) {
+      this.logger.log(`Erro ao processar pedido.pago [pedido: ${orderId}]`)
+
       this.metricsService.recordMessagingEvent(EVENT_PEDIDO_PAGO, 'error', Date.now() - start)
       this.metricsService.recordConfirmation('error')
     }
