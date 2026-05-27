@@ -64,15 +64,28 @@ jobs:
         working-directory: ${{ env.SERVICE_DIR }}
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
-      - name: Copiar .env de teste
+      - name: Criar .env
         working-directory: ${{ env.SERVICE_DIR }}
         run: |
-          cp .env.example .env.testing
-          sed -i 's|DB_HOST=.*|DB_HOST=127.0.0.1|' .env.testing
-          sed -i 's|DB_PORT=.*|DB_PORT=5432|' .env.testing
-          sed -i 's|DB_DATABASE=.*|DB_DATABASE=payment_test|' .env.testing
-          sed -i 's|DB_USERNAME=.*|DB_USERNAME=payment|' .env.testing
-          sed -i 's|DB_PASSWORD=.*|DB_PASSWORD=secret|' .env.testing
+          APP_KEY="base64:$(openssl rand -base64 32)"
+          cat > .env << EOF
+          APP_NAME=Lumen
+          APP_ENV=testing
+          APP_KEY=${APP_KEY}
+          APP_DEBUG=true
+
+          DB_CONNECTION=pgsql
+          DB_HOST=127.0.0.1
+          DB_PORT=5432
+          DB_DATABASE=payment_test
+          DB_USERNAME=payment
+          DB_PASSWORD=secret
+
+          CACHE_DRIVER=array
+          QUEUE_CONNECTION=sync
+
+          PROMETHEUS_STORAGE=apcu
+          EOF
 
       - name: Definir APP_KEY de teste
         working-directory: ${{ env.SERVICE_DIR }}
