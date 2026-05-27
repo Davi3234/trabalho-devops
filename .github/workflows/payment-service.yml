@@ -14,11 +14,30 @@ on:
 env:
   SERVICE_DIR: payment-service
   IMAGE_NAME: ${{ secrets.DOCKER_HUB_USERNAME }}/payment-service
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
+  # ─────────────────────────────────────────
+  # 1. Build & Test
+  # ─────────────────────────────────────────
   build-and-test:
     name: Build & Test
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: payment_test
+          POSTGRES_USER: payment
+          POSTGRES_PASSWORD: secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U payment -d payment_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - name: Checkout
@@ -26,39 +45,116 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup PHP
+      - name: Setup PHP 8.2
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.1'
-          extensions: mbstring, bcmath, xml, pdo_mysql
-          coverage: none
+          php-version: "8.2"
+          extensions: pdo, pdo_pgsql, zip, pcntl, bcmath, sockets, apcu
+          coverage: xdebug
+          tools: composer:v2
 
-      - name: Get Composer Cache
+      - name: Cache Composer
         uses: actions/cache@v4
         with:
           path: ~/.composer/cache
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
+          key: composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: composer-
 
-      - name: Install dependencies
-        run: |
-          composer install --no-interaction --prefer-dist --optimize-autoloader
+      - name: Instalar dependências
         working-directory: ${{ env.SERVICE_DIR }}
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
-      - name: Run tests (JUnit)
-        run: |
-          mkdir -p ${{ env.SERVICE_DIR }}/build/test-reports
-          ./vendor/bin/phpunit --configuration ${{ env.SERVICE_DIR }}/phpunit.xml --log-junit ${{ env.SERVICE_DIR }}/build/test-reports/junit.xml || true
+      - name: Copiar .env de teste
         working-directory: ${{ env.SERVICE_DIR }}
+        run: |
+          cp .env.example .env.testing
+          sed -i 's|DB_HOST=.*|DB_HOST=127.0.0.1|' .env.testing
+          sed -i 's|DB_PORT=.*|DB_PORT=5432|' .env.testing
+          sed -i 's|DB_DATABASE=.*|DB_DATABASE=payment_test|' .env.testing
+          sed -i 's|DB_USERNAME=.*|DB_USERNAME=payment|' .env.testing
+          sed -i 's|DB_PASSWORD=.*|DB_PASSWORD=secret|' .env.testing
 
-      - name: Upload test results
+      - name: Gerar chave da aplicação
+        working-directory: ${{ env.SERVICE_DIR }}
+        run: php artisan key:generate --env=testing
+
+      - name: Executar migrations
+        working-directory: ${{ env.SERVICE_DIR }}
+        run: php artisan migrate --env=testing --force
+
+      - name: Executar testes com cobertura
+        working-directory: ${{ env.SERVICE_DIR }}
+        env:
+          APP_ENV: testing
+        run: |
+          php artisan test \
+            --coverage-clover=coverage.xml \
+            --log-junit=junit.xml
+
+      - name: Publicar relatório de testes
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: phpunit-junit
-          path: ${{ env.SERVICE_DIR }}/build/test-reports/
+          name: test-results
+          path: |
+            ${{ env.SERVICE_DIR }}/junit.xml
+            ${{ env.SERVICE_DIR }}/coverage.xml
 
+  # ─────────────────────────────────────────
+  # 2. SonarCloud
+  # ─────────────────────────────────────────
+  sonar:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: pdo, pdo_pgsql, zip, pcntl, bcmath, sockets, apcu
+          coverage: xdebug
+          tools: composer:v2
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: composer-
+
+      - name: Instalar dependências
+        working-directory: ${{ env.SERVICE_DIR }}
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Download coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: test-results
+          path: ${{ env.SERVICE_DIR }}
+
+      - name: Analisar com SonarCloud
+        uses: SonarSource/sonarcloud-github-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_PAYMENT }}
+        with:
+          projectBaseDir: ${{ env.SERVICE_DIR }}
+          args: >
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY_PAYMENT }}
+            -Dsonar.php.coverage.reportPaths=coverage.xml
+            -Dsonar.php.tests.reportPath=junit.xml
+
+  # ─────────────────────────────────────────
+  # 3. Docker Build & Push
+  # ─────────────────────────────────────────
   docker:
     name: Docker Build & Push
     runs-on: ubuntu-latest
@@ -80,7 +176,6 @@ jobs:
         id: semver
         run: |
           LAST_TAG=$(git tag --list "payment-service/v*" --sort=-version:refname | head -n 1)
-
           if [ -z "$LAST_TAG" ]; then
             VERSION="1.0.0"
           else
@@ -89,7 +184,6 @@ jobs:
             PATCH=$((PATCH + 1))
             VERSION="${MAJOR}.${MINOR}.${PATCH}"
           fi
-
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Versão calculada: $VERSION"
 
@@ -100,9 +194,6 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag "payment-service/v${{ steps.semver.outputs.version }}"
           git push origin "payment-service/v${{ steps.semver.outputs.version }}"
-
-      - name: Build JAR (placeholder)
-        run: echo "No JVM build required for PHP project; building Docker image next"
 
       - name: Login no Docker Hub
         uses: docker/login-action@v3
@@ -136,6 +227,9 @@ jobs:
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
 
+  # ─────────────────────────────────────────
+  # 4. Deploy → DEV (develop branch)
+  # ─────────────────────────────────────────
   deploy-dev:
     name: Deploy → DEV (Render)
     runs-on: ubuntu-latest
@@ -147,31 +241,33 @@ jobs:
     steps:
       - name: Acionar deploy no Render (DEV)
         env:
-          HOOK_URL: ${{ secrets.DEV_RENDER_DEPLOY_HOOK_URL }}
+          HOOK_URL: ${{ secrets.PAYMENT_DEV_RENDER_DEPLOY_HOOK_URL }}
         run: |
           if [ -z "$HOOK_URL" ]; then
-            echo "DEV_RENDER_DEPLOY_HOOK_URL não configurado no repositório — deploy ignorado."
+            echo "PAYMENT_DEV_RENDER_DEPLOY_HOOK_URL não configurado — deploy ignorado."
             exit 0
           fi
           curl -f -X POST "$HOOK_URL"
 
       - name: Aguardar e verificar health
         env:
-          SERVICE_URL: ${{ secrets.DEV_RENDER_SERVICE_URL }}
+          SERVICE_URL: ${{ secrets.PAYMENT_DEV_RENDER_SERVICE_URL }}
         run: |
           if [ -z "$SERVICE_URL" ]; then
-            echo "DEV_RENDER_SERVICE_URL não configurado — health check ignorado."
+            echo "PAYMENT_DEV_RENDER_SERVICE_URL não configurado — health check ignorado."
             exit 0
           fi
-          echo "Aguardando deploy no Render"
+          echo "Aguardando deploy no Render..."
           sleep 30
-          curl --retry 10 --retry-delay 15 --fail \
-            "$SERVICE_URL/"
+          curl --retry 10 --retry-delay 15 --fail "$SERVICE_URL/health"
 
+  # ─────────────────────────────────────────
+  # 5. Deploy → HOMOL (main branch)
+  # ─────────────────────────────────────────
   deploy-homol:
     name: Deploy → HOMOL (Render)
     runs-on: ubuntu-latest
-    needs: [build-and-test, docker]
+    needs: [build-and-test, docker, sonar]
     if: >
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       github.ref == 'refs/heads/main'
@@ -179,24 +275,22 @@ jobs:
     steps:
       - name: Acionar deploy no Render (HOMOL)
         env:
-          HOOK_URL: ${{ secrets.HOMOL_RENDER_DEPLOY_HOOK_URL }}
+          HOOK_URL: ${{ secrets.PAYMENT_HOMOL_RENDER_DEPLOY_HOOK_URL }}
         run: |
           if [ -z "$HOOK_URL" ]; then
-            echo "HOMOL_RENDER_DEPLOY_HOOK_URL não configurado — deploy ignorado."
+            echo "PAYMENT_HOMOL_RENDER_DEPLOY_HOOK_URL não configurado — deploy ignorado."
             exit 0
           fi
           curl -f -X POST "$HOOK_URL"
 
       - name: Aguardar e verificar health
         env:
-          SERVICE_URL: ${{ secrets.HOMOL_RENDER_SERVICE_URL }}
+          SERVICE_URL: ${{ secrets.PAYMENT_HOMOL_RENDER_SERVICE_URL }}
         run: |
           if [ -z "$SERVICE_URL" ]; then
-            echo "HOMOL_RENDER_SERVICE_URL não configurado — health check ignorado."
+            echo "PAYMENT_HOMOL_RENDER_SERVICE_URL não configurado — health check ignorado."
             exit 0
           fi
-          echo "Aguardando deploy no Render"
+          echo "Aguardando deploy no Render..."
           sleep 30
-          curl --retry 10 --retry-delay 15 --fail \
-            "$SERVICE_URL/"
-
+          curl --retry 10 --retry-delay 15 --fail "$SERVICE_URL/health"

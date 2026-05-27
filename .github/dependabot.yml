@@ -29,3 +29,22 @@ updates:
     labels:
       - dependencies
       - github-actions
+
+  - package-ecosystem: composer
+    directory: /payment-service
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+      - payment-service
+
+  - package-ecosystem: docker
+    directory: /payment-service
+    schedule:
+      interval: weekly
+      day: monday
+    labels:
+      - dependencies
+      - payment-service
+      - docker
