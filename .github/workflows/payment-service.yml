@@ -82,7 +82,9 @@ jobs:
 
       - name: Executar migrations
         working-directory: ${{ env.SERVICE_DIR }}
-        run: php artisan migrate --env=testing --force
+        run: php artisan migrate --force
+        env:
+          APP_ENV: testing
 
       - name: Executar testes com cobertura
         working-directory: ${{ env.SERVICE_DIR }}
