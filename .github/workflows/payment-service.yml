@@ -74,9 +74,11 @@ jobs:
           sed -i 's|DB_USERNAME=.*|DB_USERNAME=payment|' .env.testing
           sed -i 's|DB_PASSWORD=.*|DB_PASSWORD=secret|' .env.testing
 
-      - name: Gerar chave da aplicação
+      - name: Definir APP_KEY de teste
         working-directory: ${{ env.SERVICE_DIR }}
-        run: php artisan key:generate --env=testing
+        run: |
+          APP_KEY="base64:$(openssl rand -base64 32)"
+          sed -i "s|APP_KEY=.*|APP_KEY=${APP_KEY}|" .env.testing
 
       - name: Executar migrations
         working-directory: ${{ env.SERVICE_DIR }}
