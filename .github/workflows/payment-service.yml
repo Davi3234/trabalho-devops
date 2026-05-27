@@ -91,7 +91,7 @@ jobs:
         working-directory: ${{ env.SERVICE_DIR }}
         run: |
           APP_KEY="base64:$(openssl rand -base64 32)"
-          sed -i "s|APP_KEY=.*|APP_KEY=${APP_KEY}|" .env.testing
+          sed -i "s|APP_KEY=.*|APP_KEY=${APP_KEY}|" .env
 
       - name: Executar migrations
         working-directory: ${{ env.SERVICE_DIR }}
