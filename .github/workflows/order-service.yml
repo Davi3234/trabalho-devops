@@ -143,8 +143,8 @@ jobs:
             echo "value=${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }},${{ env.IMAGE_NAME }}:latest-homol" >> "$GITHUB_OUTPUT"
             echo "primary=${{ steps.semver.outputs.version }}" >> "$GITHUB_OUTPUT"
           else
-            echo "value=${{ env.IMAGE_NAME }}:latest-dev" >> "$GITHUB_OUTPUT"
-            echo "primary=latest-dev" >> "$GITHUB_OUTPUT"
+            echo "value=${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }},${{ env.IMAGE_NAME }}:latest-dev" >> "$GITHUB_OUTPUT"
+            echo "primary=${{ steps.semver.outputs.version }}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build e Push da imagem Docker
