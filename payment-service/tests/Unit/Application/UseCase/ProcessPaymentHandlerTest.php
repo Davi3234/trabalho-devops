@@ -23,15 +23,17 @@ class ProcessPaymentHandlerTest extends TestCase{
     public function testHandleSuccess(){
         $dto = new ProcessPaymentDTO('order_123', 100.00, 'credit_card', []);
 
-        $paymentMock = $this->getMockBuilder(\App\Domain\Payment\Payment::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $paymentMock = $this->createMock(\App\Domain\Payment\Payment::class);
         $paymentMock->method('status')->willReturn('confirmed');
         $paymentMock->method('id')->willReturn($this->createMock(\App\Domain\Payment\ValueObject\PaymentId::class));
         $paymentMock->method('orderId')->willReturn('order_123');
         $paymentMock->method('amount')->willReturn($this->createMock(\App\Domain\Payment\ValueObject\Amount::class));
-        $paymentMock->method('method')->willReturn($this->createMock(\App\Domain\Payment\ValueObject\PaymentMethod::class));
-
+        $paymentMock
+            ->expects($this->any())
+            ->method('method')
+            ->willReturn(
+                $this->createMock(\App\Domain\Payment\ValueObject\PaymentMethod::class)
+        );
         $this->service->method('processPayment')
             ->willReturn($paymentMock);
 
