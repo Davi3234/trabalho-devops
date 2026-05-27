@@ -79,6 +79,8 @@ export class RabbitMQConsumer {
       this.metricsService.recordMessagingEvent(EVENT_PEDIDO_CANCELADO, 'success', Date.now() - start)
       this.metricsService.recordReversal('success')
     } catch (error: any) {
+      this.logger.log(`Erro ao processar pedido.cancelado [pedido: ${orderId}]`)
+
       this.metricsService.recordMessagingEvent(EVENT_PEDIDO_CANCELADO, 'error', Date.now() - start)
       this.metricsService.recordReversal('error')
     }

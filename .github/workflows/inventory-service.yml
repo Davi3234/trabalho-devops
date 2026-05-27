@@ -95,12 +95,6 @@ jobs:
             -Dsonar.organization=${{ secrets.INVENTORY_SONAR_ORGANIZATION }}
             -Dsonar.projectKey=${{ secrets.INVENTORY_SONAR_PROJECT_KEY }}
 
-  # ─────────────────────────────────────────────────────────────────────────────
-  # 3. Docker Build & Push
-  #    Constrói a imagem UMA vez e aplica tags por ambiente.
-  #    develop → latest-dev  (publicação de homologação)
-  #    main    → <semver> + latest-homol (promoção de artefato)
-  # ─────────────────────────────────────────────────────────────────────────────
   docker:
     name: Docker Build & Push
     runs-on: ubuntu-latest
