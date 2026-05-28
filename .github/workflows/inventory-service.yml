@@ -89,11 +89,14 @@ jobs:
         uses: SonarSource/sonarcloud-github-action@v3
         env:
           SONAR_TOKEN: ${{ secrets.INVENTORY_SONAR_TOKEN }}
+          SONAR_ORGANIZATION: ${{ secrets.INVENTORY_SONAR_ORGANIZATION }}
+          SONAR_PROJECT_KEY: ${{ secrets.INVENTORY_SONAR_PROJECT_KEY }}
         with:
           projectBaseDir: ${{ env.SERVICE_DIR }}
           args: >
-            -Dsonar.organization=${{ secrets.INVENTORY_SONAR_ORGANIZATION }}
-            -Dsonar.projectKey=${{ secrets.INVENTORY_SONAR_PROJECT_KEY }}
+            -Dsonar.token="${SONAR_TOKEN}"
+            -Dsonar.organization="${SONAR_ORGANIZATION}"
+            -Dsonar.projectKey="${SONAR_PROJECT_KEY}"
 
   # docker:
   #   name: Docker Build & Push
