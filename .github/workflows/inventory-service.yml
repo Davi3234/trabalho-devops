@@ -85,15 +85,6 @@ jobs:
           --coverage.reporter=text
           --coverage.reportsDirectory=coverage
 
-      - name: Debug Sonar vars
-        run: |
-          echo "ORG=${{ secrets.INVENTORY_SONAR_ORGANIZATION }}"
-          echo "PROJECT=${{ secrets.INVENTORY_SONAR_PROJECT_KEY }}"
-          if [ -z "${{ secrets.INVENTORY_SONAR_TOKEN }}" ]; then
-            echo "TOKEN VAZIO"
-            exit 1
-          fi
-
       - name: Analisar com SonarCloud
         uses: SonarSource/sonarcloud-github-action@v3
         env:
