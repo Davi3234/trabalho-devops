@@ -8,6 +8,10 @@ import { REDIS_CLIENT_TOKEN } from '@infrastructure/redis.token'
 
 @Module({
   providers: [
+    {
+      provide: REDIS_CLIENT_TOKEN,
+      useValue: null
+    },
     InMemoryCacheService,
     RedisLockService,
     {
