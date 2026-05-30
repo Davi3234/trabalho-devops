@@ -85,6 +85,14 @@ jobs:
           --coverage.reporter=text
           --coverage.reportsDirectory=coverage
 
+      - name: Debug Sonar Config
+        run: |
+          echo "ORG LENGTH: ${#SONAR_ORG}"
+          echo "PROJECT LENGTH: ${#SONAR_PROJECT}"
+        env:
+          SONAR_ORG: ${{ secrets.INVENTORY_SONAR_ORGANIZATION }}
+          SONAR_PROJECT: ${{ secrets.INVENTORY_SONAR_PROJECT_KEY }}
+
       - name: Analisar com SonarCloud
         uses: SonarSource/sonarcloud-github-action@v3
         env:

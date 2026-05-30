@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 
 import { ILockService } from '@application/ports/lock-service.port'
-import { RedisCacheService } from '@infrastructure/support/redis-cache.service'
+import { CacheService } from '@infrastructure/cache/cache-service'
 import { CriticalException } from '@shared/exceptions/critical.exception'
 
 const LOCK_PREFIX = 'lock:'
@@ -13,7 +13,7 @@ export class RedisLockService implements ILockService {
   private readonly logger = new Logger(RedisLockService.name)
 
   constructor(
-    private readonly cache: RedisCacheService
+    private readonly cache: CacheService
   ) { }
 
   async acquire(key: string, ttlMs: number) {
