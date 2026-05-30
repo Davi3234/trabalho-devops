@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { RedisCacheService } from '@infrastructure/cache/implementations/redis-cache.service'
 import { RedisLockService } from '@infrastructure/ports/redis-lock.service'
-import { RedisCacheService } from '@infrastructure/support/redis-cache.service'
 import { CriticalException } from '@shared/exceptions/critical.exception'
 
 function makeRedisMock() {
