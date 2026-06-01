@@ -1,5 +1,5 @@
 export interface Environment {
-  ENVIRONMENT: 'PRODUCTION' | 'DEVELOPMENT' | 'TEST'
+  ENVIRONMENT: 'PRODUCTION' | 'DEVELOPMENT' | 'HOMOLOG'
   PORT: number
   DATABASE_URL: string
   REDIS_HOST: string
