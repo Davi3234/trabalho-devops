@@ -1,17 +1,20 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 
+import { CacheService } from '@infrastructure/cache/cache-service'
 import { REDIS_CLIENT_TOKEN } from '@infrastructure/redis.token'
 
 const CACHE_PREFIX = 'cache:'
 
 @Injectable()
-export class RedisCacheService {
+export class RedisCacheService extends CacheService {
 
   private readonly logger = new Logger(RedisCacheService.name)
 
   constructor(
     @Inject(REDIS_CLIENT_TOKEN) private readonly redis: any
-  ) { }
+  ) {
+    super()
+  }
 
   async get<T>(key: string) {
     const value = await this.redis.get(`${CACHE_PREFIX}${key}`)

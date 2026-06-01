@@ -1,19 +1,20 @@
-name: Order Service — CI/CD
+name: Inventory Service — CI/CD
 
 on:
   push:
     branches: [main, develop]
     paths:
-      - "order-service/**"
+      - "inventory-service/**"
   pull_request:
     branches: [main, develop]
     paths:
-      - "order-service/**"
+      - "inventory-service/**"
   workflow_dispatch:
 
 env:
-  SERVICE_DIR: order-service
-  IMAGE_NAME: ${{ secrets.DOCKER_HUB_USERNAME }}/order-service
+  SERVICE_DIR: inventory-service
+  IMAGE_NAME: ${{ secrets.INVENTORY_DOCKER_HUB_USERNAME }}/inventory-service
+  NODE_VERSION: "20"
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
@@ -27,25 +28,31 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Java 17
-        uses: actions/setup-java@v4
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
         with:
-          distribution: temurin
-          java-version: "17"
-          cache: maven
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ${{ env.SERVICE_DIR }}/package-lock.json
 
-      - name: Build (sem testes)
-        run: mvn -B package -DskipTests -f ${{ env.SERVICE_DIR }}/pom.xml
+      - name: Instalar dependências
+        working-directory: ${{ env.SERVICE_DIR }}
+        run: npm ci
+
+      - name: Build
+        working-directory: ${{ env.SERVICE_DIR }}
+        run: npm run build
 
       - name: Executar testes
-        run: mvn -B test -f ${{ env.SERVICE_DIR }}/pom.xml
+        working-directory: ${{ env.SERVICE_DIR }}
+        run: npm run test
 
       - name: Publicar relatório de testes
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: ${{ env.SERVICE_DIR }}/target/surefire-reports/
+          path: ${{ env.SERVICE_DIR }}/coverage/
 
   sonar:
     name: SonarCloud Analysis
@@ -58,25 +65,35 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Java 17
-        uses: actions/setup-java@v4
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
         with:
-          distribution: temurin
-          java-version: "17"
-          cache: maven
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: ${{ env.SERVICE_DIR }}/package-lock.json
+
+      - name: Instalar dependências
+        working-directory: ${{ env.SERVICE_DIR }}
+        run: npm ci
+
+      - name: Executar testes com cobertura (LCOV)
+        working-directory: ${{ env.SERVICE_DIR }}
+        run: >
+          npx vitest run
+          --coverage
+          --coverage.reporter=lcov
+          --coverage.reporter=text
+          --coverage.reportsDirectory=coverage
 
       - name: Analisar com SonarCloud
+        uses: SonarSource/sonarcloud-github-action@383f7e52eae3ab0510c3cb0e7d9d150bbaeab838 # v3
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
-          SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
-        run: |
-          mvn -B verify sonar:sonar \
-            -f ${{ env.SERVICE_DIR }}/pom.xml \
-            -Dsonar.token="${SONAR_TOKEN}" \
-            -Dsonar.organization="${SONAR_ORGANIZATION}" \
-            -Dsonar.projectKey="${SONAR_PROJECT_KEY}" \
-            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+          SONAR_TOKEN: ${{ secrets.INVENTORY_SONAR_TOKEN }}
+        with:
+          projectBaseDir: ${{ env.SERVICE_DIR }}
+          args: >
+            -Dsonar.organization=${{ secrets.INVENTORY_SONAR_ORGANIZATION }}
+            -Dsonar.projectKey=${{ secrets.INVENTORY_SONAR_PROJECT_KEY }}
 
   docker:
     name: Docker Build & Push
@@ -98,12 +115,12 @@ jobs:
       - name: Calcular próxima versão semântica
         id: semver
         run: |
-          LAST_TAG=$(git tag --list "order-service/v*" --sort=-version:refname | head -n 1)
+          LAST_TAG=$(git tag --list "inventory-service/v*" --sort=-version:refname | head -n 1)
 
           if [ -z "$LAST_TAG" ]; then
             VERSION="1.0.0"
           else
-            VERSION_CORE=${LAST_TAG#order-service/v}
+            VERSION_CORE=${LAST_TAG#inventory-service/v}
             IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION_CORE"
             PATCH=$((PATCH + 1))
             VERSION="${MAJOR}.${MINOR}.${PATCH}"
@@ -117,24 +134,14 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "order-service/v${{ steps.semver.outputs.version }}"
-          git push origin "order-service/v${{ steps.semver.outputs.version }}"
-
-      - name: Setup Java 17 (para build do JAR final)
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-          cache: maven
-
-      - name: Build JAR
-        run: mvn -B package -DskipTests -f ${{ env.SERVICE_DIR }}/pom.xml
+          git tag "inventory-service/v${{ steps.semver.outputs.version }}"
+          git push origin "inventory-service/v${{ steps.semver.outputs.version }}"
 
       - name: Login no Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+          username: ${{ secrets.INVENTORY_DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.INVENTORY_DOCKER_HUB_TOKEN }}
 
       - name: Definir tags da imagem por ambiente
         id: tags
@@ -143,20 +150,16 @@ jobs:
             echo "value=${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }},${{ env.IMAGE_NAME }}:latest-homol" >> "$GITHUB_OUTPUT"
             echo "primary=${{ steps.semver.outputs.version }}" >> "$GITHUB_OUTPUT"
           else
-            echo "value=${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }},${{ env.IMAGE_NAME }}:latest-dev" >> "$GITHUB_OUTPUT"
-            echo "primary=${{ steps.semver.outputs.version }}" >> "$GITHUB_OUTPUT"
+            echo "value=${{ env.IMAGE_NAME }}:latest-dev" >> "$GITHUB_OUTPUT"
+            echo "primary=latest-dev" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build e Push da imagem Docker
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: ./${{ env.SERVICE_DIR }}
           push: true
           tags: ${{ steps.tags.outputs.value }}
-          build-args: |
-            IMAGE_TAG=${{ steps.tags.outputs.primary }}
-            GIT_COMMIT=${{ github.sha }}
-            GIT_BRANCH=${{ github.ref_name }}
           labels: |
             org.opencontainers.image.version=${{ steps.semver.outputs.version }}
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
@@ -166,17 +169,15 @@ jobs:
     name: Deploy → DEV (Render)
     runs-on: ubuntu-latest
     needs: [build-and-test, docker]
-    if: >
-      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
-      github.ref == 'refs/heads/develop'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/develop'
 
     steps:
       - name: Acionar deploy no Render (DEV)
         env:
-          HOOK_URL: ${{ secrets.DEV_RENDER_DEPLOY_HOOK_URL }}
+          HOOK_URL: ${{ secrets.INVENTORY_DEV_RENDER_DEPLOY_HOOK_URL }}
         run: |
           if [ -z "$HOOK_URL" ]; then
-            echo "DEV_RENDER_DEPLOY_HOOK_URL não configurado no repositório — deploy ignorado."
+            echo "INVENTORY_DEV_RENDER_DEPLOY_HOOK_URL não configurado — deploy ignorado."
             echo "Configure em: GitHub → Settings → Secrets and variables → Actions"
             exit 0
           fi
@@ -184,40 +185,45 @@ jobs:
 
       - name: Aguardar e verificar health
         env:
-          SERVICE_URL: ${{ secrets.DEV_RENDER_SERVICE_URL }}
+          SERVICE_URL: ${{ secrets.INVENTORY_DEV_RENDER_SERVICE_URL }}
         run: |
           if [ -z "$SERVICE_URL" ]; then
-            echo "DEV_RENDER_SERVICE_URL não configurado — health check ignorado."
+            echo "INVENTORY_DEV_RENDER_SERVICE_URL não configurado — health check ignorado."
             exit 0
           fi
           echo "Aguardando deploy no Render"
           sleep 30
           curl --retry 10 --retry-delay 15 --fail \
-            "$SERVICE_URL/actuator/health"
+            "$SERVICE_URL/health"
 
   deploy-homol:
     name: Deploy → HOMOL (Render)
     runs-on: ubuntu-latest
     needs: [build-and-test, docker, sonar]
-    if: >
-      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
-      github.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
 
     steps:
       - name: Acionar deploy no Render
+        env:
+          HOOK_URL: ${{ secrets.INVENTORY_HOMOL_RENDER_DEPLOY_HOOK_URL }}
         run: |
-          curl -f -X POST "${{ secrets.HOMOL_RENDER_DEPLOY_HOOK_URL }}"
+          if [ -z "$HOOK_URL" ]; then
+            echo "INVENTORY_HOMOL_RENDER_DEPLOY_HOOK_URL não configurado — deploy ignorado."
+            echo "Configure em: GitHub → Settings → Secrets and variables → Actions"
+            exit 0
+          fi
+          curl -f -X POST "$HOOK_URL"
 
       - name: Aguardar e verificar health
         env:
-          SERVICE_URL: ${{ secrets.HOMOL_RENDER_SERVICE_URL }}
+          SERVICE_URL: ${{ secrets.INVENTORY_HOMOL_RENDER_SERVICE_URL }}
         run: |
           if [ -z "$SERVICE_URL" ]; then
-            echo "HOMOL_RENDER_SERVICE_URL não configurado — health check ignorado."
+            echo "INVENTORY_HOMOL_RENDER_SERVICE_URL não configurado — health check ignorado."
             echo "Configure em: GitHub → Settings → Secrets and variables → Actions"
             exit 0
           fi
           echo "Aguardando deploy no Render"
           sleep 30
           curl --retry 10 --retry-delay 15 --fail \
-            "$SERVICE_URL/actuator/health"
+            "$SERVICE_URL/health"

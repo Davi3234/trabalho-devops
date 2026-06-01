@@ -14,6 +14,7 @@ import { ExpirarReservasUseCase } from '@application/use-cases/expirar-reserva.u
 import { ReservarItensUseCase } from '@application/use-cases/reservar-itens.use-case'
 import { PRODUTO_REPO_TOKEN } from '@domain/repositories/produto.repository'
 import { RESERVA_REPO_TOKEN } from '@domain/repositories/reserva.repository'
+import { MetricsModule } from '@infrastructure/metrics/metrics.module'
 import { RabbitMQConsumer } from '@infrastructure/messaging/rabbitmq-consumer'
 import { RabbitMQModule } from '@infrastructure/rabbitmq.module'
 import { RedisModule } from '@infrastructure/redis.module'
@@ -33,6 +34,7 @@ import { CatchAllExceptionFilter } from '@presentation/filters/catch-all.filter'
     ScheduleModule.forRoot(),
     RedisModule,
     RabbitMQModule,
+    MetricsModule,
   ],
   controllers: [
     AppController,
