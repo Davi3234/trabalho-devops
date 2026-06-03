@@ -8,6 +8,12 @@
         <include>
             <directory suffix=".php">./app</directory>
         </include>
+        <exclude>
+            <file>./app/Interfaces/Http/Controller/MetricsController.php</file>
+            <file>./app/Interfaces/Http/Middleware/PrometheusMetricsMiddleware.php</file>
+            <file>./app/Infrastructure/Service/PrometheusService.php</file>
+            <file>./app/Providers/PrometheusServiceProvider.php</file>
+        </exclude>
     </source>
 
     <testsuites>
