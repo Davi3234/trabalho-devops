@@ -51,30 +51,8 @@ class SwaggerController extends BaseController
             ],
             'tags' => [
                 ['name' => 'Pagamentos', 'description' => 'Processamento de cobranças'],
-                ['name' => 'Saúde',      'description' => 'Monitoramento do serviço'],
             ],
             'paths' => [
-                '/health' => [
-                    'get' => [
-                        'tags'    => ['Saúde'],
-                        'summary' => 'Health check',
-                        'responses' => [
-                            '200' => [
-                                'description' => 'Serviço saudável',
-                                'content' => [
-                                    'application/json' => [
-                                        'schema' => [
-                                            'type'       => 'object',
-                                            'properties' => [
-                                                'status' => ['type' => 'string', 'example' => 'ok'],
-                                            ],
-                                        ],
-                                    ],
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
                 '/process' => [
                     'post' => [
                         'tags'    => ['Pagamentos'],
