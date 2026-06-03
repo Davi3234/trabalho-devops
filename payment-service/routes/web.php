@@ -17,6 +17,10 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
+$router->get('/health', function () {
+    return response()->json(['status' => 'ok']);
+});
+
 // Prometheus metrics endpoint
 $router->get('/actuator/prometheus', '\App\Interfaces\Http\Controller\MetricsController');
 
