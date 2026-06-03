@@ -21,9 +21,6 @@ $router->get('/health', function () {
     return response()->json(['status' => 'ok']);
 });
 
-// Prometheus metrics endpoint
-$router->get('/actuator/prometheus', '\App\Interfaces\Http\Controller\MetricsController');
-
 $router->group(['namespace' => '\App\Interfaces\Http\Controller'], function () use ($router) {
     $router->post('/process', 'PaymentController@process');
     $router->post('/events/stock-reserved', 'PaymentController@handleStockReserved');
