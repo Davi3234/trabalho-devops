@@ -43,6 +43,10 @@ class ProcessPaymentHandler {
                 $payment->status()
             );
         } catch (PaymentFailedException $e) {
+            $this->eventPublisher->publish('payment.pagamento.falhou', [
+                'orderId' => $dto->getOrderId(),
+                'error' => $e->getMessage()
+            ]);
             throw $e;
         }
     }
