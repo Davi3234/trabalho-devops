@@ -142,6 +142,7 @@ jobs:
         with:
           username: ${{ secrets.INVENTORY_DOCKER_HUB_USERNAME }}
           password: ${{ secrets.INVENTORY_DOCKER_HUB_TOKEN }}
+        timeout-minutes: 5
 
       - name: Definir tags da imagem por ambiente
         id: tags
