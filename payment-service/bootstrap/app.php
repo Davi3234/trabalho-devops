@@ -76,6 +76,10 @@ $app->configure('app');
 //     App\Http\Middleware\ExampleMiddleware::class
 // ]);
 
+$app->middleware([
+    App\Interfaces\Http\Middleware\PrometheusMetricsMiddleware::class
+]);
+
 // $app->routeMiddleware([
 //     'auth' => App\Http\Middleware\Authenticate::class,
 // ]);
@@ -92,6 +96,7 @@ $app->configure('app');
 */
 
 $app->register(App\Providers\AppServiceProvider::class);
+$app->register(App\Providers\PrometheusServiceProvider::class);
 // $app->register(App\Providers\AuthServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
 
