@@ -1,4 +1,4 @@
-FROM php:8.2-fpm-alpine AS builder
+FROM php:8.5-fpm-alpine AS builder
 
 RUN apk add --no-cache \
     postgresql-dev \
@@ -25,7 +25,7 @@ RUN composer dump-autoload --optimize
 
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache 2>/dev/null || true
 
-FROM php:8.2-fpm-alpine AS development
+FROM php:8.5-fpm-alpine AS development
 
 RUN apk add --no-cache \
     postgresql-dev \
