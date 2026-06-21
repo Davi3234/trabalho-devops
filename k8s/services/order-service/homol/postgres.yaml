@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: order-postgres-homol-data
+  labels:
+    app: order-postgres-homol
+    environment: homol
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-postgres-homol
+  labels:
+    app: order-postgres-homol
+    environment: homol
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order-postgres-homol
+  template:
+    metadata:
+      labels:
+        app: order-postgres-homol
+        environment: homol
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: order-service-homol-secret
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          volumeMounts:
+            - name: order-postgres-homol-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: order-postgres-homol-data
+          persistentVolumeClaim:
+            claimName: order-postgres-homol-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-postgres-homol
+  labels:
+    app: order-postgres-homol
+    environment: homol
+spec:
+  type: ClusterIP
+  selector:
+    app: order-postgres-homol
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432

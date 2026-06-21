@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service-homol
+  labels:
+    app: order-service-homol
+    environment: homol
+spec:
+  type: ClusterIP
+  selector:
+    app: order-service-homol
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
