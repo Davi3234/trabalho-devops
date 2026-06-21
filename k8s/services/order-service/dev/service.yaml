@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service-dev
+  labels:
+    app: order-service-dev
+    environment: dev
+spec:
+  type: ClusterIP
+  selector:
+    app: order-service-dev
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

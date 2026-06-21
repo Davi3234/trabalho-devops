@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: order-service-dev
+  labels:
+    app: order-service-dev
+    environment: dev
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: dev.devops.local
+      http:
+        paths:
+          - path: /api/orders
+            pathType: Prefix
+            backend:
+              service:
+                name: order-service-dev
+                port:
+                  number: 8080
