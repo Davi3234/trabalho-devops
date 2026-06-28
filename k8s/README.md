@@ -1,0 +1,181 @@
+# Kubernetes, CI/CD e o11y
+
+Este diretorio contem os manifests Kubernetes do `order-service` separados por ambiente:
+
+```text
+k8s/
+  services/
+    order-service/
+      dev/
+      homol/
+  o11y/
+    prometheus/
+    grafana/
+```
+
+Cada ambiente possui nomes proprios:
+
+```text
+DEV:
+  Deployment: order-service-dev
+  Secret: order-service-dev-secret
+  Service: order-service-dev
+  Postgres: order-postgres-dev
+  Ingress: dev.devops.local
+
+HOMOL:
+  Deployment: order-service-homol
+  Secret: order-service-homol-secret
+  Service: order-service-homol
+  Postgres: order-postgres-homol
+  Ingress: homol.devops.local
+```
+
+## 1. Pre-requisitos
+
+Instale:
+
+- Docker
+- Minikube
+- kubectl
+- Git
+- GitHub Actions Runner self-hosted
+- Powershell disponivel no runner
+
+Verifique:
+
+```bash
+docker --version
+minikube version
+kubectl version --client
+git --version
+$PSVersionTable
+```
+
+## 2. Subir o cluster
+
+```bash
+minikube start
+minikube addons enable ingress
+kubectl get nodes
+```
+
+## 3. Configurar GitHub Runner
+
+No GitHub:
+
+```text
+Repository -> Settings -> Actions -> Runners -> New self-hosted runner
+```
+
+Instale o runner na mesma maquina que acessa o Minikube e adicione os labels:
+
+```text
+self-hosted
+kubernetes
+order-service
+```
+
+Valide antes de rodar a pipeline:
+
+```bash
+kubectl get nodes
+kubectl get pods -A
+```
+
+## 4. Executar a pipeline
+
+Workflow:
+
+```text
+.github/workflows/order-service.yml
+```
+
+Fluxo:
+
+1. Build e testes.
+2. SonarCloud.
+3. Build e push Docker.
+4. Cria/atualiza a secret Kubernetes do ambiente.
+5. Aplica o kustomization do ambiente.
+6. Atualiza a imagem do deployment.
+7. Aguarda rollout.
+
+Ambientes:
+
+```text
+develop -> dev -> k8s/services/order-service/dev
+main    -> homol -> k8s/services/order-service/homol
+```
+
+## 5. Deploy manual DEV
+
+```bash
+kubectl create secret generic order-service-dev-secret \
+  --from-literal=DB_USERNAME=postgres \
+  --from-literal=DB_PASSWORD=admin \
+  --from-literal=POSTGRES_DB=order \
+  --from-literal=POSTGRES_USER=postgres \
+  --from-literal=POSTGRES_PASSWORD=admin \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+minikube image build -t order-service:latest ./order-service
+kubectl apply -k k8s/services/order-service/dev
+kubectl rollout status deployment/order-service-dev
+```
+
+## 6. Deploy manual HOMOL
+
+```bash
+kubectl create secret generic order-service-homol-secret \
+  --from-literal=DB_USERNAME=postgres \
+  --from-literal=DB_PASSWORD=admin \
+  --from-literal=POSTGRES_DB=order \
+  --from-literal=POSTGRES_USER=postgres \
+  --from-literal=POSTGRES_PASSWORD=admin \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+minikube image build -t order-service:latest ./order-service
+kubectl apply -k k8s/services/order-service/homol
+kubectl rollout status deployment/order-service-homol
+```
+
+## 7. Deploy de o11y
+
+Prometheus e Grafana ficam em:
+
+```text
+k8s/o11y
+```
+
+Crie a secret do Grafana:
+
+```bash
+kubectl create secret generic grafana-secret \
+  --from-literal=GF_SECURITY_ADMIN_USER=admin \
+  --from-literal=GF_SECURITY_ADMIN_PASSWORD=admin \
+  --from-literal=GF_USERS_ALLOW_SIGN_UP=false \
+  --dry-run=client -o yaml | kubectl apply -f -
+```
+
+Suba a observabilidade:
+
+```bash
+kubectl apply -k k8s/o11y
+kubectl rollout status deployment/prometheus
+kubectl rollout status deployment/grafana
+```
+
+Acesse:
+
+```bash
+kubectl port-forward svc/prometheus 9090:9090
+kubectl port-forward svc/grafana 3000:3000
+```
+
+URLs:
+
+```text
+http://localhost:9090
+http://localhost:3000
+```

@@ -28,3 +28,8 @@ $router->group(['namespace' => '\App\Interfaces\Http\Controller'], function () u
     $router->post('/process', 'PaymentController@process');
     $router->post('/events/stock-reserved', 'PaymentController@handleStockReserved');
 });
+
+if (env('SWAGGER_ENABLED', false)) {
+    $router->get('/docs', '\App\Interfaces\Http\Controller\SwaggerController@ui');
+    $router->get('/docs/openapi.json', '\App\Interfaces\Http\Controller\SwaggerController@spec');
+}

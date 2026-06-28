@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-service-homol-config
+  labels:
+    app: order-service-homol
+    environment: homol
+data:
+  SPRING_APPLICATION_NAME: order-service
+  SPRING_PROFILES_ACTIVE: homol
+  DB_URL: jdbc:postgresql://order-postgres-homol:5432/order
+  SWAGGER_ENABLED: "false"
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
+  # MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"

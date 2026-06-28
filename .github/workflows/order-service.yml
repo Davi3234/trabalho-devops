@@ -1,14 +1,16 @@
-name: Order Service — CI/CD
+name: Order Service - CI/CD
 
 on:
   push:
     branches: [main, develop]
     paths:
       - "order-service/**"
+      - "k8s/**"
   pull_request:
     branches: [main, develop]
     paths:
       - "order-service/**"
+      - "k8s/**"
   workflow_dispatch:
 
 env:
@@ -34,13 +36,13 @@ jobs:
           java-version: "17"
           cache: maven
 
-      - name: Build (sem testes)
+      - name: Build sem testes
         run: mvn -B package -DskipTests -f ${{ env.SERVICE_DIR }}/pom.xml
 
       - name: Executar testes
         run: mvn -B test -f ${{ env.SERVICE_DIR }}/pom.xml
 
-      - name: Publicar relatório de testes
+      - name: Publicar relatorio de testes
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -88,6 +90,7 @@ jobs:
 
     outputs:
       version: ${{ steps.semver.outputs.version }}
+      tag: ${{ steps.tags.outputs.primary }}
 
     steps:
       - name: Checkout
@@ -95,32 +98,41 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Calcular próxima versão semântica
+      - name: Calcular proxima versao semantica
         id: semver
         run: |
-          LAST_TAG=$(git tag --list "order-service/v*" --sort=-version:refname | head -n 1)
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            LAST_TAG=$(git tag --list "order-service/v*" --sort=-version:refname | grep -v '\-dev$' | head -n 1)
+          else
+            LAST_TAG=$(git tag --list "order-service/v*" --sort=-version:refname | head -n 1)
+          fi
 
           if [ -z "$LAST_TAG" ]; then
             VERSION="1.0.0"
           else
             VERSION_CORE=${LAST_TAG#order-service/v}
+            VERSION_CORE=${VERSION_CORE%-dev}
             IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION_CORE"
             PATCH=$((PATCH + 1))
             VERSION="${MAJOR}.${MINOR}.${PATCH}"
           fi
 
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "Versão calculada: $VERSION"
+          echo "Versao calculada: $VERSION"
 
-      - name: Criar e empurrar tag Git
-        if: github.ref == 'refs/heads/main'
+      - name: Criar e enviar tag Git
         run: |
-          git config user.name  "github-actions[bot]"
+          git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "order-service/v${{ steps.semver.outputs.version }}"
-          git push origin "order-service/v${{ steps.semver.outputs.version }}"
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            git tag "order-service/v${{ steps.semver.outputs.version }}"
+            git push origin "order-service/v${{ steps.semver.outputs.version }}"
+          else
+            git tag "order-service/v${{ steps.semver.outputs.version }}-dev"
+            git push origin "order-service/v${{ steps.semver.outputs.version }}-dev"
+          fi
 
-      - name: Setup Java 17 (para build do JAR final)
+      - name: Setup Java 17 para build do JAR final
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -141,11 +153,10 @@ jobs:
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "value=${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }},${{ env.IMAGE_NAME }}:latest-homol" >> "$GITHUB_OUTPUT"
-            echo "primary=${{ steps.semver.outputs.version }}" >> "$GITHUB_OUTPUT"
           else
             echo "value=${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }},${{ env.IMAGE_NAME }}:latest-dev" >> "$GITHUB_OUTPUT"
-            echo "primary=${{ steps.semver.outputs.version }}" >> "$GITHUB_OUTPUT"
           fi
+          echo "primary=${{ steps.semver.outputs.version }}" >> "$GITHUB_OUTPUT"
 
       - name: Build e Push da imagem Docker
         uses: docker/build-push-action@v6
@@ -163,61 +174,97 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
 
   deploy-dev:
-    name: Deploy → DEV (Render)
-    runs-on: ubuntu-latest
+    name: Deploy -> Dev (Kubernetes)
+    runs-on: [self-hosted, kubernetes, order-service]
     needs: [build-and-test, docker]
     if: >
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       github.ref == 'refs/heads/develop'
 
     steps:
-      - name: Acionar deploy no Render (DEV)
-        env:
-          HOOK_URL: ${{ secrets.DEV_RENDER_DEPLOY_HOOK_URL }}
-        run: |
-          if [ -z "$HOOK_URL" ]; then
-            echo "DEV_RENDER_DEPLOY_HOOK_URL não configurado no repositório — deploy ignorado."
-            echo "Configure em: GitHub → Settings → Secrets and variables → Actions"
-            exit 0
-          fi
-          curl -f -X POST "$HOOK_URL"
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Aguardar e verificar health
+      - name: Deploy no cluster Kubernetes
+        shell: powershell
         env:
-          SERVICE_URL: ${{ secrets.DEV_RENDER_SERVICE_URL }}
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          NAMESPACE: ${{ vars.DEV_K8S_NAMESPACE || 'order-service' }}
+          IMAGE_TAG: ${{ needs.docker.outputs.tag }}
+          KUSTOMIZE_PATH: k8s/services/order-service/dev
+          DEPLOYMENT_NAME: order-service-dev
+          SECRET_NAME: order-service-dev-secret
+          DEV_ORDER_DB_USERNAME: ${{ secrets.DEV_ORDER_DB_USERNAME }}
+          DEV_ORDER_DB_PASSWORD: ${{ secrets.DEV_ORDER_DB_PASSWORD }}
+          DEV_ORDER_POSTGRES_DB: ${{ secrets.DEV_ORDER_POSTGRES_DB }}
         run: |
-          if [ -z "$SERVICE_URL" ]; then
-            echo "DEV_RENDER_SERVICE_URL não configurado — health check ignorado."
-            exit 0
-          fi
-          echo "Aguardando deploy no Render"
-          sleep 30
-          curl --retry 10 --retry-delay 15 --fail \
-            "$SERVICE_URL/actuator/health"
+          if ([string]::IsNullOrWhiteSpace($env:DEV_ORDER_DB_USERNAME)) { throw "Secret DEV_ORDER_DB_USERNAME nao configurado" }
+          if ([string]::IsNullOrWhiteSpace($env:DEV_ORDER_DB_PASSWORD)) { throw "Secret DEV_ORDER_DB_PASSWORD nao configurado" }
+          if ([string]::IsNullOrWhiteSpace($env:DEV_ORDER_POSTGRES_DB)) { throw "Secret DEV_ORDER_POSTGRES_DB nao configurado" }
+          if ([string]::IsNullOrWhiteSpace($env:IMAGE_TAG)) { throw "IMAGE_TAG vazio - output do job docker nao propagado" }
+
+          kubectl create namespace $env:NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
+
+          $secretArgs = @(
+            "-n", $env:NAMESPACE,
+            "create", "secret", "generic", $env:SECRET_NAME,
+            "--from-literal=DB_USERNAME=$env:DEV_ORDER_DB_USERNAME",
+            "--from-literal=DB_PASSWORD=$env:DEV_ORDER_DB_PASSWORD",
+            "--from-literal=POSTGRES_DB=$env:DEV_ORDER_POSTGRES_DB",
+            "--from-literal=POSTGRES_USER=$env:DEV_ORDER_DB_USERNAME",
+            "--from-literal=POSTGRES_PASSWORD=$env:DEV_ORDER_DB_PASSWORD",
+            "--dry-run=client", "-o", "yaml"
+          )
+          kubectl @secretArgs | kubectl apply -f -
+
+          kubectl -n $env:NAMESPACE apply -k $env:KUSTOMIZE_PATH
+          kubectl -n $env:NAMESPACE set image "deployment/$env:DEPLOYMENT_NAME" "order-service=$($env:IMAGE_NAME):$($env:IMAGE_TAG)"
+          kubectl -n $env:NAMESPACE rollout status "deployment/$env:DEPLOYMENT_NAME" --timeout=120s
 
   deploy-homol:
-    name: Deploy → HOMOL (Render)
-    runs-on: ubuntu-latest
+    name: Deploy -> Homol (Kubernetes)
+    runs-on: [self-hosted, kubernetes, order-service]
     needs: [build-and-test, docker, sonar]
     if: >
       (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
       github.ref == 'refs/heads/main'
 
     steps:
-      - name: Acionar deploy no Render
-        run: |
-          curl -f -X POST "${{ secrets.HOMOL_RENDER_DEPLOY_HOOK_URL }}"
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Aguardar e verificar health
+      - name: Deploy no cluster Kubernetes
+        shell: powershell
         env:
-          SERVICE_URL: ${{ secrets.HOMOL_RENDER_SERVICE_URL }}
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          NAMESPACE: ${{ vars.HML_K8S_NAMESPACE || 'order-service' }}
+          IMAGE_TAG: ${{ needs.docker.outputs.tag }}
+          KUSTOMIZE_PATH: k8s/services/order-service/homol
+          DEPLOYMENT_NAME: order-service-homol
+          SECRET_NAME: order-service-homol-secret
+          HML_ORDER_DB_USERNAME: ${{ secrets.HML_ORDER_DB_USERNAME }}
+          HML_ORDER_DB_PASSWORD: ${{ secrets.HML_ORDER_DB_PASSWORD }}
+          HML_ORDER_POSTGRES_DB: ${{ secrets.HML_ORDER_POSTGRES_DB }}
         run: |
-          if [ -z "$SERVICE_URL" ]; then
-            echo "HOMOL_RENDER_SERVICE_URL não configurado — health check ignorado."
-            echo "Configure em: GitHub → Settings → Secrets and variables → Actions"
-            exit 0
-          fi
-          echo "Aguardando deploy no Render"
-          sleep 30
-          curl --retry 10 --retry-delay 15 --fail \
-            "$SERVICE_URL/actuator/health"
+          if ([string]::IsNullOrWhiteSpace($env:HML_ORDER_DB_USERNAME)) { throw "Secret HML_ORDER_DB_USERNAME nao configurado" }
+          if ([string]::IsNullOrWhiteSpace($env:HML_ORDER_DB_PASSWORD)) { throw "Secret HML_ORDER_DB_PASSWORD nao configurado" }
+          if ([string]::IsNullOrWhiteSpace($env:HML_ORDER_POSTGRES_DB)) { throw "Secret HML_ORDER_POSTGRES_DB nao configurado" }
+          if ([string]::IsNullOrWhiteSpace($env:IMAGE_TAG)) { throw "IMAGE_TAG vazio - output do job docker nao propagado" }
+
+          kubectl create namespace $env:NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
+
+          $secretArgs = @(
+            "-n", $env:NAMESPACE,
+            "create", "secret", "generic", $env:SECRET_NAME,
+            "--from-literal=DB_USERNAME=$env:HML_ORDER_DB_USERNAME",
+            "--from-literal=DB_PASSWORD=$env:HML_ORDER_DB_PASSWORD",
+            "--from-literal=POSTGRES_DB=$env:HML_ORDER_POSTGRES_DB",
+            "--from-literal=POSTGRES_USER=$env:HML_ORDER_DB_USERNAME",
+            "--from-literal=POSTGRES_PASSWORD=$env:HML_ORDER_DB_PASSWORD",
+            "--dry-run=client", "-o", "yaml"
+          )
+          kubectl @secretArgs | kubectl apply -f -
+
+          kubectl -n $env:NAMESPACE apply -k $env:KUSTOMIZE_PATH
+          kubectl -n $env:NAMESPACE set image "deployment/$env:DEPLOYMENT_NAME" "order-service=$($env:IMAGE_NAME):$($env:IMAGE_TAG)"
+          kubectl -n $env:NAMESPACE rollout status "deployment/$env:DEPLOYMENT_NAME" --timeout=120s
