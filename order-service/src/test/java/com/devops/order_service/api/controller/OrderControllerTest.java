@@ -5,6 +5,7 @@ import com.devops.order_service.application.exception.OrderNotFoundException;
 import com.devops.order_service.application.service.OrderService;
 import com.devops.order_service.domain.entity.Order;
 import com.devops.order_service.domain.entity.OrderStatus;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,9 @@ class OrderControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @MockitoBean
     private OrderService orderService;
