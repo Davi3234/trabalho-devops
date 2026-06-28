@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-service-dev-config
+  labels:
+    app: order-service-dev
+    environment: dev
+data:
+  SPRING_APPLICATION_NAME: order-service
+  SPRING_PROFILES_ACTIVE: dev
+  DB_URL: jdbc:postgresql://order-postgres-dev:5432/order
+  SWAGGER_ENABLED: "true"
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus

@@ -17,7 +17,7 @@
       "title": "Taxa de Requisições HTTP (req/s)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
       "targets": [
         {
           "expr": "rate(http_server_requests_seconds_count{application=\"order-service\"}[5m])",
@@ -37,7 +37,7 @@
       "title": "Taxa de Erros HTTP 4xx/5xx (req/s)",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
-      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
       "targets": [
         {
           "expr": "rate(http_server_requests_seconds_count{application=\"order-service\",status=~\"4..|5..\"}[5m])",
@@ -58,7 +58,7 @@
       "title": "Latência HTTP — p50 / p95 / p99",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
-      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
       "targets": [
         {
           "expr": "histogram_quantile(0.50, rate(http_server_requests_seconds_bucket{application=\"order-service\"}[5m]))",
@@ -88,7 +88,7 @@
       "title": "JVM — Memória Heap Usada",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
-      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
       "targets": [
         {
           "expr": "jvm_memory_used_bytes{application=\"order-service\",area=\"heap\"}",
@@ -113,7 +113,7 @@
       "title": "JVM — Threads Ativos",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 8, "x": 0, "y": 16 },
-      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
       "targets": [
         {
           "expr": "jvm_threads_live_threads{application=\"order-service\"}",
@@ -138,7 +138,7 @@
       "title": "HikariCP — Conexões com o Banco",
       "type": "timeseries",
       "gridPos": { "h": 8, "w": 8, "x": 8, "y": 16 },
-      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
       "targets": [
         {
           "expr": "hikaricp_connections_active{application=\"order-service\"}",
@@ -168,7 +168,7 @@
       "title": "Uptime da Aplicação",
       "type": "stat",
       "gridPos": { "h": 8, "w": 8, "x": 16, "y": 16 },
-      "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" },
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
       "targets": [
         {
           "expr": "process_uptime_seconds{application=\"order-service\"}",
