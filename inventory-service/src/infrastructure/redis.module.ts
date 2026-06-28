@@ -1,18 +1,28 @@
 import { Module } from '@nestjs/common'
+import { Redis } from 'ioredis'
 
 import { LOCK_SERVICE_TOKEN } from '@application/ports/lock-service.port'
 import { CacheService } from '@infrastructure/cache/cache-service'
-import { InMemoryCacheService } from '@infrastructure/cache/implementations/in-memory-cache.service'
+import { RedisCacheService } from '@infrastructure/cache/implementations/redis-cache.service'
 import { RedisLockService } from '@infrastructure/ports/redis-lock.service'
 import { REDIS_CLIENT_TOKEN } from '@infrastructure/redis.token'
+import { env } from '@shared/env'
 
 @Module({
   providers: [
     {
       provide: REDIS_CLIENT_TOKEN,
-      useValue: null
+      useFactory: (): Redis => {
+        return new Redis({
+          host: env('REDIS_HOST', 'localhost'),
+          port: env('REDIS_PORT', 6379),
+          password: env('REDIS_PASSWORD') ?? undefined,
+          lazyConnect: false,
+          enableReadyCheck: true,
+        })
+      },
     },
-    InMemoryCacheService,
+    RedisCacheService,
     RedisLockService,
     {
       provide: LOCK_SERVICE_TOKEN,
@@ -20,9 +30,9 @@ import { REDIS_CLIENT_TOKEN } from '@infrastructure/redis.token'
     },
     {
       provide: CacheService,
-      useClass: InMemoryCacheService,
+      useClass: RedisCacheService,
     },
   ],
-  exports: [REDIS_CLIENT_TOKEN, RedisLockService, CacheService, InMemoryCacheService, LOCK_SERVICE_TOKEN],
+  exports: [REDIS_CLIENT_TOKEN, RedisLockService, CacheService, RedisCacheService, LOCK_SERVICE_TOKEN],
 })
 export class RedisModule { }
