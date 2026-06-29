@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: inventory-service-homol-config
+  labels:
+    app: inventory-service-homol
+    environment: homol
+data:
+  ENVIRONMENT: HOMOLOG
+  PORT: "3000"
+  REDIS_HOST: inventory-redis-homol
+  REDIS_PORT: "6379"

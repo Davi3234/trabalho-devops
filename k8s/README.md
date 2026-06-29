@@ -1,6 +1,7 @@
 # Kubernetes, CI/CD e o11y
 
-Este diretorio contem os manifests Kubernetes do `order-service` separados por ambiente:
+Este diretorio contem os manifests Kubernetes do `order-service` e do
+`inventory-service` separados por ambiente:
 
 ```text
 k8s/
@@ -8,6 +9,11 @@ k8s/
     order-service/
       dev/
       homol/
+    inventory-service/
+      dev/
+      homol/
+  messaging/
+    rabbitmq/        # broker compartilhado por todos os servicos
   o11y/
     prometheus/
     grafana/
@@ -16,20 +22,51 @@ k8s/
 Cada ambiente possui nomes proprios:
 
 ```text
-DEV:
+ORDER-SERVICE / DEV:
   Deployment: order-service-dev
   Secret: order-service-dev-secret
   Service: order-service-dev
   Postgres: order-postgres-dev
   Ingress: dev.devops.local
 
-HOMOL:
+ORDER-SERVICE / HOMOL:
   Deployment: order-service-homol
   Secret: order-service-homol-secret
   Service: order-service-homol
   Postgres: order-postgres-homol
   Ingress: homol.devops.local
+
+INVENTORY-SERVICE / DEV:
+  Deployment: inventory-service-dev
+  Secret: inventory-service-dev-secret
+  Service: inventory-service-dev (porta 3000)
+  Postgres: inventory-postgres-dev
+  Redis: inventory-redis-dev
+  Ingress: dev.devops.local (path /estoque)
+
+INVENTORY-SERVICE / HOMOL:
+  Deployment: inventory-service-homol
+  Secret: inventory-service-homol-secret
+  Service: inventory-service-homol (porta 3000)
+  Postgres: inventory-postgres-homol
+  Redis: inventory-redis-homol
+  Ingress: homol.devops.local (path /estoque)
+
+MESSAGING (compartilhado):
+  Deployment: rabbitmq
+  Service: rabbitmq (amqp 5672 / management 15672)
 ```
+
+> **RabbitMQ e infraestrutura compartilhada.** O broker NAO pertence a um
+> servico especifico: ele e usado por todos (order, inventory, payment...), por
+> isso fica em `messaging/rabbitmq` com Service unico `rabbitmq` (mesmo host do
+> `docker-compose.yaml`). Sobe com as `definitions.json` (mesmos exchanges/filas
+> do compose), incluindo o exchange `order.events` consumido pelo inventory.
+>
+> O `inventory-service` (NestJS) depende de **PostgreSQL** (Prisma) e **Redis**
+> proprios, alem do **RabbitMQ** compartilhado, para iniciar. O `order-service`
+> alcanca o inventory via DNS interno em `http://inventory-service-<env>:3000`
+> (`INVENTORY_SERVICE_URL`).
 
 ## 1. Pre-requisitos
 
@@ -74,6 +111,7 @@ Instale o runner na mesma maquina que acessa o Minikube e adicione os labels:
 self-hosted
 kubernetes
 order-service
+inventory-service
 ```
 
 Valide antes de rodar a pipeline:
@@ -138,6 +176,55 @@ kubectl create secret generic order-service-homol-secret \
 minikube image build -t order-service:latest ./order-service
 kubectl apply -k k8s/services/order-service/homol
 kubectl rollout status deployment/order-service-homol
+```
+
+## 6.1 Deploy do RabbitMQ compartilhado
+
+O broker e compartilhado por todos os servicos e precisa estar no ar antes do
+`inventory-service` (que conecta nele no startup):
+
+```bash
+kubectl apply -k k8s/messaging/rabbitmq
+kubectl rollout status deployment/rabbitmq
+```
+
+## 6.2 Deploy manual inventory-service (DEV)
+
+A secret guarda as credenciais do Postgres, a senha do Redis, a `DATABASE_URL`
+(usada pelo Prisma) e a `RABBITMQ_URL` (apontando para o broker compartilhado):
+
+```bash
+kubectl create secret generic inventory-service-dev-secret \
+  --from-literal=DATABASE_URL=postgres://postgres:admin@inventory-postgres-dev:5432/inventory \
+  --from-literal=POSTGRES_DB=inventory \
+  --from-literal=POSTGRES_USER=postgres \
+  --from-literal=POSTGRES_PASSWORD=admin \
+  --from-literal=REDIS_PASSWORD=admin \
+  --from-literal=RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672 \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+minikube image build -t inventory-service:latest ./inventory-service
+kubectl apply -k k8s/services/inventory-service/dev
+kubectl rollout status deployment/inventory-postgres-dev
+kubectl rollout status deployment/inventory-redis-dev
+kubectl rollout status deployment/inventory-service-dev
+```
+
+## 6.3 Deploy manual inventory-service (HOMOL)
+
+```bash
+kubectl create secret generic inventory-service-homol-secret \
+  --from-literal=DATABASE_URL=postgres://postgres:admin@inventory-postgres-homol:5432/inventory \
+  --from-literal=POSTGRES_DB=inventory \
+  --from-literal=POSTGRES_USER=postgres \
+  --from-literal=POSTGRES_PASSWORD=admin \
+  --from-literal=REDIS_PASSWORD=admin \
+  --from-literal=RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672 \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+minikube image build -t inventory-service:latest ./inventory-service
+kubectl apply -k k8s/services/inventory-service/homol
+kubectl rollout status deployment/inventory-service-homol
 ```
 
 ## 7. Deploy de o11y

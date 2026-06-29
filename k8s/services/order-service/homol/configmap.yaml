@@ -11,4 +11,5 @@ data:
   DB_URL: jdbc:postgresql://order-postgres-homol:5432/order
   SWAGGER_ENABLED: "false"
   MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
+  INVENTORY_SERVICE_URL: http://inventory-service-homol:3000
   # MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
