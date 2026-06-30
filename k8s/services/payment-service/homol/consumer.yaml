@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-consumer-homol
+  labels:
+    app: payment-consumer-homol
+    environment: homol
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payment-consumer-homol
+  template:
+    metadata:
+      labels:
+        app: payment-consumer-homol
+        environment: homol
+    spec:
+      containers:
+        - name: payment-consumer
+          image: payment-service:latest
+          imagePullPolicy: IfNotPresent
+          command: ["php", "artisan", "rabbitmq:consume"]
+          envFrom:
+            - configMapRef:
+                name: payment-service-homol-config
+            - secretRef:
+                name: payment-service-homol-secret
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi

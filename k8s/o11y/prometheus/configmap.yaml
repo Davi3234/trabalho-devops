@@ -26,3 +26,35 @@ data:
               - order-service-homol:8080
             labels:
               namespace: order-service
+
+      - job_name: payment-service-dev
+        metrics_path: /actuator/prometheus
+        static_configs:
+          - targets:
+              - payment-service-dev:8080
+            labels:
+              namespace: payment-service
+
+      - job_name: payment-service-homol
+        metrics_path: /actuator/prometheus
+        static_configs:
+          - targets:
+              - payment-service-homol:8080
+            labels:
+              namespace: payment-service
+
+      - job_name: inventory-service-dev
+        metrics_path: /metrics
+        static_configs:
+          - targets:
+              - inventory-service-dev:3000
+            labels:
+              namespace: inventory-service
+
+      - job_name: inventory-service-homol
+        metrics_path: /metrics
+        static_configs:
+          - targets:
+              - inventory-service-homol:3000
+            labels:
+              namespace: inventory-service

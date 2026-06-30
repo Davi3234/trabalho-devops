@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: inventory-service-dev-config
+  labels:
+    app: inventory-service-dev
+    environment: dev
+data:
+  ENVIRONMENT: DEVELOPMENT
+  PORT: "3000"
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"

@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payment-service-dev-config
+  labels:
+    app: payment-service-dev
+    environment: dev
+data:
+  APP_NAME: "Payment Service"
+  APP_ENV: local
+  APP_DEBUG: "true"
+  APP_URL: "http://dev.devops.local"
+  APP_TIMEZONE: UTC
+  LOG_CHANNEL: stderr
+  DB_CONNECTION: pgsql
+  DB_HOST: payment-postgres-dev
+  DB_PORT: "5432"
+  DB_DATABASE: payment
+  CACHE_DRIVER: file
+  QUEUE_CONNECTION: sync
+  PROMETHEUS_STORAGE: redis
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+  SWAGGER_ENABLED: "true"
+  PAYMENT_SERVICE_URL: "http://payment-service-dev:8080"
+  RABBITMQ_HOST: rabbitmq
+  RABBITMQ_PORT: "5672"

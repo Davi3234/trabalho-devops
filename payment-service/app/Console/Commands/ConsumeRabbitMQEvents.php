@@ -69,7 +69,8 @@ class ConsumeRabbitMQEvents extends Command{
 
             $paymentData = [];
 
-            $response = $httpClient->post('http://payment-nginx:5002/events/stock-reserved', [
+            $paymentUrl = rtrim(getenv('PAYMENT_SERVICE_URL') ?: 'http://payment-nginx:5002', '/');
+            $response = $httpClient->post("{$paymentUrl}/events/stock-reserved", [
                 'json' => [
                     'order_id' => $orderId,
                     'amount' => $amount,

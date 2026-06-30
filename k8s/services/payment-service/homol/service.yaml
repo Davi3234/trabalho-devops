@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-service-homol
+  labels:
+    app: payment-service-homol
+    environment: homol
+spec:
+  type: ClusterIP
+  selector:
+    app: payment-service-homol
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: payment-postgres-dev-data
+  labels:
+    app: payment-postgres-dev
+    environment: dev
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-postgres-dev
+  labels:
+    app: payment-postgres-dev
+    environment: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: payment-postgres-dev
+  template:
+    metadata:
+      labels:
+        app: payment-postgres-dev
+        environment: dev
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: payment-service-dev-secret
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          volumeMounts:
+            - name: payment-postgres-dev-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: payment-postgres-dev-data
+          persistentVolumeClaim:
+            claimName: payment-postgres-dev-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment-postgres-dev
+  labels:
+    app: payment-postgres-dev
+    environment: dev
+spec:
+  type: ClusterIP
+  selector:
+    app: payment-postgres-dev
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
