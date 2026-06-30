@@ -11,3 +11,6 @@ data:
   DB_URL: jdbc:postgresql://order-postgres-dev:5432/order
   SWAGGER_ENABLED: "true"
   MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics,prometheus
+  INVENTORY_SERVICE_URL: http://inventory-service-dev:3000
+  RABBITMQ_HOST: rabbitmq
+  RABBITMQ_PORT: "5672"
