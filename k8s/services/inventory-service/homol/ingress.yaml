@@ -1,0 +1,20 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: inventory-service-homol
+  labels:
+    app: inventory-service-homol
+    environment: homol
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: homol.devops.local
+      http:
+        paths:
+          - path: /estoque
+            pathType: Prefix
+            backend:
+              service:
+                name: inventory-service-homol
+                port:
+                  number: 3000

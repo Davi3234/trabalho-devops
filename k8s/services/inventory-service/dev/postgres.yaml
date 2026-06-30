@@ -1,0 +1,92 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: inventory-postgres-dev-data
+  labels:
+    app: inventory-postgres-dev
+    environment: dev
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory-postgres-dev
+  labels:
+    app: inventory-postgres-dev
+    environment: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inventory-postgres-dev
+  template:
+    metadata:
+      labels:
+        app: inventory-postgres-dev
+        environment: dev
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: inventory-service-dev-secret
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: inventory-service-dev-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: inventory-service-dev-secret
+                  key: POSTGRES_PASSWORD
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          volumeMounts:
+            - name: inventory-postgres-dev-data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: inventory-postgres-dev-data
+          persistentVolumeClaim:
+            claimName: inventory-postgres-dev-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory-postgres-dev
+  labels:
+    app: inventory-postgres-dev
+    environment: dev
+spec:
+  type: ClusterIP
+  selector:
+    app: inventory-postgres-dev
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432

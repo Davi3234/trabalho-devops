@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: inventory-redis-dev-data
+  labels:
+    app: inventory-redis-dev
+    environment: dev
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 512Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory-redis-dev
+  labels:
+    app: inventory-redis-dev
+    environment: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inventory-redis-dev
+  template:
+    metadata:
+      labels:
+        app: inventory-redis-dev
+        environment: dev
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: inventory-service-dev-secret
+                  key: REDIS_PASSWORD
+          command:
+            - sh
+            - -c
+            - exec redis-server --requirepass "$REDIS_PASSWORD"
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - redis-cli -a "$REDIS_PASSWORD" ping | grep -q PONG
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - redis-cli -a "$REDIS_PASSWORD" ping | grep -q PONG
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          volumeMounts:
+            - name: inventory-redis-dev-data
+              mountPath: /data
+      volumes:
+        - name: inventory-redis-dev-data
+          persistentVolumeClaim:
+            claimName: inventory-redis-dev-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory-redis-dev
+  labels:
+    app: inventory-redis-dev
+    environment: dev
+spec:
+  type: ClusterIP
+  selector:
+    app: inventory-redis-dev
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
