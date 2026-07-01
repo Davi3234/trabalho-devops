@@ -20,13 +20,7 @@ class ConsumeRabbitMQEvents extends Command{
     {
         $this->info('Starting RabbitMQ consumer...');
 
-        $connection = new AMQPStreamConnection(
-            getenv('RABBITMQ_HOST') ?: 'rabbitmq',
-            getenv('RABBITMQ_PORT') ?: 5672,
-            getenv('RABBITMQ_USER') ?: 'guest',
-            getenv('RABBITMQ_PASSWORD') ?: 'guest'
-        );
-
+        $connection = $this->connectWithRetry();
         $channel = $connection->channel();
 
         $queue_name = 'payment.pedido.aprovado';
@@ -57,6 +51,32 @@ class ConsumeRabbitMQEvents extends Command{
 
         $channel->close();
         $connection->close();
+    }
+
+    private function connectWithRetry(): AMQPStreamConnection
+    {
+        $host     = getenv('RABBITMQ_HOST')     ?: 'rabbitmq';
+        $port     = getenv('RABBITMQ_PORT')     ?: 5672;
+        $user     = getenv('RABBITMQ_USER')     ?: 'guest';
+        $password = getenv('RABBITMQ_PASSWORD') ?: 'guest';
+
+        $attempts = 0;
+        $maxAttempts = 10;
+
+        while (true) {
+            try {
+                $attempts++;
+                $this->info("Connecting to RabbitMQ at {$host}:{$port} (attempt {$attempts})...");
+                return new AMQPStreamConnection($host, $port, $user, $password);
+            } catch (\Exception $e) {
+                if ($attempts >= $maxAttempts) {
+                    $this->error("Could not connect to RabbitMQ after {$maxAttempts} attempts.");
+                    throw $e;
+                }
+                $this->warn("Connection failed: {$e->getMessage()}. Retrying in 5s...");
+                sleep(5);
+            }
+        }
     }
 
     private function processOrderCreatedEvent(array $data, Client $httpClient){
