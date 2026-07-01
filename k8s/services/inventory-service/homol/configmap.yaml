@@ -6,7 +6,7 @@ metadata:
     app: inventory-service-homol
     environment: homol
 data:
-  ENVIRONMENT: PRODUCTION
+  ENVIRONMENT: HOMOLOG
   PORT: "3000"
-  REDIS_HOST: redis
+  REDIS_HOST: inventory-redis-homol
   REDIS_PORT: "6379"

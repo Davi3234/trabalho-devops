@@ -5,10 +5,12 @@ on:
     branches: [main, develop]
     paths:
       - "inventory-service/**"
+      - "k8s/**"
   pull_request:
     branches: [main, develop]
     paths:
       - "inventory-service/**"
+      - "k8s/**"
   workflow_dispatch:
 
 env:
@@ -105,6 +107,7 @@ jobs:
 
     outputs:
       version: ${{ steps.semver.outputs.version }}
+      tag: ${{ steps.tags.outputs.primary }}
 
     steps:
       - name: Checkout
@@ -115,12 +118,17 @@ jobs:
       - name: Calcular próxima versão semântica
         id: semver
         run: |
-          LAST_TAG=$(git tag --list "inventory-service/v*" --sort=-version:refname | head -n 1)
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            LAST_TAG=$(git tag --list "inventory-service/v*" --sort=-version:refname | grep -v '\-dev$' | head -n 1)
+          else
+            LAST_TAG=$(git tag --list "inventory-service/v*" --sort=-version:refname | head -n 1)
+          fi
 
           if [ -z "$LAST_TAG" ]; then
             VERSION="1.0.0"
           else
             VERSION_CORE=${LAST_TAG#inventory-service/v}
+            VERSION_CORE=${VERSION_CORE%-dev}
             IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION_CORE"
             PATCH=$((PATCH + 1))
             VERSION="${MAJOR}.${MINOR}.${PATCH}"
@@ -130,12 +138,16 @@ jobs:
           echo "Versão calculada: $VERSION"
 
       - name: Criar e empurrar tag Git
-        if: github.ref == 'refs/heads/main'
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "inventory-service/v${{ steps.semver.outputs.version }}"
-          git push origin "inventory-service/v${{ steps.semver.outputs.version }}"
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            git tag "inventory-service/v${{ steps.semver.outputs.version }}"
+            git push origin "inventory-service/v${{ steps.semver.outputs.version }}"
+          else
+            git tag "inventory-service/v${{ steps.semver.outputs.version }}-dev"
+            git push origin "inventory-service/v${{ steps.semver.outputs.version }}-dev"
+          fi
 
       - name: Login no Docker Hub
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
@@ -149,11 +161,10 @@ jobs:
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "value=${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }},${{ env.IMAGE_NAME }}:latest-homol" >> "$GITHUB_OUTPUT"
-            echo "primary=${{ steps.semver.outputs.version }}" >> "$GITHUB_OUTPUT"
           else
-            echo "value=${{ env.IMAGE_NAME }}:latest-dev" >> "$GITHUB_OUTPUT"
-            echo "primary=latest-dev" >> "$GITHUB_OUTPUT"
+            echo "value=${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }},${{ env.IMAGE_NAME }}:latest-dev" >> "$GITHUB_OUTPUT"
           fi
+          echo "primary=${{ steps.semver.outputs.version }}" >> "$GITHUB_OUTPUT"
 
       - name: Build e Push da imagem Docker
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
@@ -167,64 +178,123 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
 
   deploy-dev:
-    name: Deploy → DEV (Render)
-    runs-on: ubuntu-latest
+    name: Deploy -> Dev (Kubernetes)
+    runs-on: [self-hosted, kubernetes, inventory-service]
     needs: [build-and-test, docker]
-    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/develop'
+    if: >
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch') &&
+      github.ref == 'refs/heads/develop'
 
     steps:
-      - name: Acionar deploy no Render (DEV)
-        env:
-          HOOK_URL: ${{ secrets.INVENTORY_DEV_RENDER_DEPLOY_HOOK_URL }}
-        run: |
-          if [ -z "$HOOK_URL" ]; then
-            echo "INVENTORY_DEV_RENDER_DEPLOY_HOOK_URL não configurado — deploy ignorado."
-            echo "Configure em: GitHub → Settings → Secrets and variables → Actions"
-            exit 0
-          fi
-          curl -f -X POST "$HOOK_URL"
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Aguardar e verificar health
+      - name: Deploy no cluster Kubernetes
+        shell: powershell
         env:
-          SERVICE_URL: ${{ secrets.INVENTORY_DEV_RENDER_SERVICE_URL }}
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          NAMESPACE: ${{ vars.DEV_K8S_NAMESPACE || 'inventory-service' }}
+          IMAGE_TAG: ${{ needs.docker.outputs.tag }}
+          KUSTOMIZE_PATH: k8s/services/inventory-service/dev
+          RABBITMQ_PATH: k8s/messaging/rabbitmq
+          DEPLOYMENT_NAME: inventory-service-dev
+          CONTAINER_NAME: inventory-service
+          SECRET_NAME: inventory-service-dev-secret
+          POSTGRES_HOST: inventory-postgres-dev
+          DEV_INVENTORY_DB_USERNAME: ${{ secrets.DEV_INVENTORY_DB_USERNAME }}
+          DEV_INVENTORY_DB_PASSWORD: ${{ secrets.DEV_INVENTORY_DB_PASSWORD }}
+          DEV_INVENTORY_POSTGRES_DB: ${{ secrets.DEV_INVENTORY_POSTGRES_DB }}
+          DEV_INVENTORY_REDIS_PASSWORD: ${{ secrets.DEV_INVENTORY_REDIS_PASSWORD }}
+          DEV_INVENTORY_RABBITMQ_URL: ${{ secrets.DEV_INVENTORY_RABBITMQ_URL }}
         run: |
-          if [ -z "$SERVICE_URL" ]; then
-            echo "INVENTORY_DEV_RENDER_SERVICE_URL não configurado — health check ignorado."
-            exit 0
-          fi
-          echo "Aguardando deploy no Render"
-          sleep 30
-          curl --retry 10 --retry-delay 15 --fail \
-            "$SERVICE_URL/health"
+          if ([string]::IsNullOrWhiteSpace($env:DEV_INVENTORY_DB_USERNAME)) { throw "Secret DEV_INVENTORY_DB_USERNAME nao configurado" }
+          if ([string]::IsNullOrWhiteSpace($env:DEV_INVENTORY_DB_PASSWORD)) { throw "Secret DEV_INVENTORY_DB_PASSWORD nao configurado" }
+          if ([string]::IsNullOrWhiteSpace($env:DEV_INVENTORY_POSTGRES_DB)) { throw "Secret DEV_INVENTORY_POSTGRES_DB nao configurado" }
+          if ([string]::IsNullOrWhiteSpace($env:DEV_INVENTORY_REDIS_PASSWORD)) { throw "Secret DEV_INVENTORY_REDIS_PASSWORD nao configurado" }
+          if ([string]::IsNullOrWhiteSpace($env:DEV_INVENTORY_RABBITMQ_URL)) { throw "Secret DEV_INVENTORY_RABBITMQ_URL nao configurado" }
+          if ([string]::IsNullOrWhiteSpace($env:IMAGE_TAG)) { throw "IMAGE_TAG vazio - output do job docker nao propagado" }
+
+          $databaseUrl = "postgres://$($env:DEV_INVENTORY_DB_USERNAME):$($env:DEV_INVENTORY_DB_PASSWORD)@$($env:POSTGRES_HOST):5432/$($env:DEV_INVENTORY_POSTGRES_DB)"
+
+          kubectl create namespace $env:NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
+
+          kubectl -n $env:NAMESPACE apply -k $env:RABBITMQ_PATH
+          kubectl -n $env:NAMESPACE rollout status "deployment/rabbitmq" --timeout=180s
+
+          $secretArgs = @(
+            "-n", $env:NAMESPACE,
+            "create", "secret", "generic", $env:SECRET_NAME,
+            "--from-literal=DATABASE_URL=$databaseUrl",
+            "--from-literal=POSTGRES_DB=$env:DEV_INVENTORY_POSTGRES_DB",
+            "--from-literal=POSTGRES_USER=$env:DEV_INVENTORY_DB_USERNAME",
+            "--from-literal=POSTGRES_PASSWORD=$env:DEV_INVENTORY_DB_PASSWORD",
+            "--from-literal=REDIS_PASSWORD=$env:DEV_INVENTORY_REDIS_PASSWORD",
+            "--from-literal=RABBITMQ_URL=$env:DEV_INVENTORY_RABBITMQ_URL",
+            "--dry-run=client", "-o", "yaml"
+          )
+          kubectl @secretArgs | kubectl apply -f -
+
+          kubectl -n $env:NAMESPACE apply -k $env:KUSTOMIZE_PATH
+          kubectl -n $env:NAMESPACE set image "deployment/$env:DEPLOYMENT_NAME" "$($env:CONTAINER_NAME)=$($env:IMAGE_NAME):$($env:IMAGE_TAG)"
+          kubectl -n $env:NAMESPACE rollout status "deployment/$env:DEPLOYMENT_NAME" --timeout=240s
 
   deploy-homol:
-    name: Deploy → HOMOL (Render)
-    runs-on: ubuntu-latest
+    name: Deploy -> Homol (Kubernetes)
+    runs-on: [self-hosted, kubernetes, inventory-service]
     needs: [build-and-test, docker, sonar]
-    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+    if: >
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+      && github.ref == 'refs/heads/main'
 
     steps:
-      - name: Acionar deploy no Render
-        env:
-          HOOK_URL: ${{ secrets.INVENTORY_HOMOL_RENDER_DEPLOY_HOOK_URL }}
-        run: |
-          if [ -z "$HOOK_URL" ]; then
-            echo "INVENTORY_HOMOL_RENDER_DEPLOY_HOOK_URL não configurado — deploy ignorado."
-            echo "Configure em: GitHub → Settings → Secrets and variables → Actions"
-            exit 0
-          fi
-          curl -f -X POST "$HOOK_URL"
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Aguardar e verificar health
+      - name: Deploy no cluster Kubernetes
+        shell: powershell
         env:
-          SERVICE_URL: ${{ secrets.INVENTORY_HOMOL_RENDER_SERVICE_URL }}
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          NAMESPACE: ${{ vars.HML_K8S_NAMESPACE || 'inventory-service' }}
+          IMAGE_TAG: ${{ needs.docker.outputs.tag }}
+          KUSTOMIZE_PATH: k8s/services/inventory-service/homol
+          RABBITMQ_PATH: k8s/messaging/rabbitmq
+          DEPLOYMENT_NAME: inventory-service-homol
+          CONTAINER_NAME: inventory-service
+          SECRET_NAME: inventory-service-homol-secret
+          POSTGRES_HOST: inventory-postgres-homol
+          HML_INVENTORY_DB_USERNAME: ${{ secrets.HML_INVENTORY_DB_USERNAME }}
+          HML_INVENTORY_DB_PASSWORD: ${{ secrets.HML_INVENTORY_DB_PASSWORD }}
+          HML_INVENTORY_POSTGRES_DB: ${{ secrets.HML_INVENTORY_POSTGRES_DB }}
+          HML_INVENTORY_REDIS_PASSWORD: ${{ secrets.HML_INVENTORY_REDIS_PASSWORD }}
+          HML_INVENTORY_RABBITMQ_URL: ${{ secrets.HML_INVENTORY_RABBITMQ_URL }}
         run: |
-          if [ -z "$SERVICE_URL" ]; then
-            echo "INVENTORY_HOMOL_RENDER_SERVICE_URL não configurado — health check ignorado."
-            echo "Configure em: GitHub → Settings → Secrets and variables → Actions"
-            exit 0
-          fi
-          echo "Aguardando deploy no Render"
-          sleep 30
-          curl --retry 10 --retry-delay 15 --fail \
-            "$SERVICE_URL/health"
+          if ([string]::IsNullOrWhiteSpace($env:HML_INVENTORY_DB_USERNAME)) { throw "Secret HML_INVENTORY_DB_USERNAME nao configurado" }
+          if ([string]::IsNullOrWhiteSpace($env:HML_INVENTORY_DB_PASSWORD)) { throw "Secret HML_INVENTORY_DB_PASSWORD nao configurado" }
+          if ([string]::IsNullOrWhiteSpace($env:HML_INVENTORY_POSTGRES_DB)) { throw "Secret HML_INVENTORY_POSTGRES_DB nao configurado" }
+          if ([string]::IsNullOrWhiteSpace($env:HML_INVENTORY_REDIS_PASSWORD)) { throw "Secret HML_INVENTORY_REDIS_PASSWORD nao configurado" }
+          if ([string]::IsNullOrWhiteSpace($env:HML_INVENTORY_RABBITMQ_URL)) { throw "Secret HML_INVENTORY_RABBITMQ_URL nao configurado" }
+          if ([string]::IsNullOrWhiteSpace($env:IMAGE_TAG)) { throw "IMAGE_TAG vazio - output do job docker nao propagado" }
+
+          $databaseUrl = "postgres://$($env:HML_INVENTORY_DB_USERNAME):$($env:HML_INVENTORY_DB_PASSWORD)@$($env:POSTGRES_HOST):5432/$($env:HML_INVENTORY_POSTGRES_DB)"
+
+          kubectl create namespace $env:NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
+
+          kubectl -n $env:NAMESPACE apply -k $env:RABBITMQ_PATH
+          kubectl -n $env:NAMESPACE rollout status "deployment/rabbitmq" --timeout=180s
+
+          $secretArgs = @(
+            "-n", $env:NAMESPACE,
+            "create", "secret", "generic", $env:SECRET_NAME,
+            "--from-literal=DATABASE_URL=$databaseUrl",
+            "--from-literal=POSTGRES_DB=$env:HML_INVENTORY_POSTGRES_DB",
+            "--from-literal=POSTGRES_USER=$env:HML_INVENTORY_DB_USERNAME",
+            "--from-literal=POSTGRES_PASSWORD=$env:HML_INVENTORY_DB_PASSWORD",
+            "--from-literal=REDIS_PASSWORD=$env:HML_INVENTORY_REDIS_PASSWORD",
+            "--from-literal=RABBITMQ_URL=$env:HML_INVENTORY_RABBITMQ_URL",
+            "--dry-run=client", "-o", "yaml"
+          )
+          kubectl @secretArgs | kubectl apply -f -
+
+          kubectl -n $env:NAMESPACE apply -k $env:KUSTOMIZE_PATH
+          kubectl -n $env:NAMESPACE set image "deployment/$env:DEPLOYMENT_NAME" "$($env:CONTAINER_NAME)=$($env:IMAGE_NAME):$($env:IMAGE_TAG)"
+          kubectl -n $env:NAMESPACE rollout status "deployment/$env:DEPLOYMENT_NAME" --timeout=240s

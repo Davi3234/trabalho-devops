@@ -5,16 +5,14 @@ metadata:
   labels:
     app: inventory-service-dev
     environment: dev
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   ingressClassName: nginx
   rules:
     - host: dev.devops.local
       http:
         paths:
-          - path: /api/inventories(/|$)(.*)
-            pathType: ImplementationSpecific
+          - path: /estoque
+            pathType: Prefix
             backend:
               service:
                 name: inventory-service-dev

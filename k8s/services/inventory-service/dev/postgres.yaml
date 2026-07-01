@@ -35,9 +35,22 @@ spec:
           image: postgres:16-alpine
           ports:
             - containerPort: 5432
-          envFrom:
-            - secretRef:
-                name: inventory-service-dev-secret
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: inventory-service-dev-secret
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: inventory-service-dev-secret
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: inventory-service-dev-secret
+                  key: POSTGRES_PASSWORD
           readinessProbe:
             exec:
               command:

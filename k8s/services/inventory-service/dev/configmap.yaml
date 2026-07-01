@@ -8,5 +8,5 @@ metadata:
 data:
   ENVIRONMENT: DEVELOPMENT
   PORT: "3000"
-  REDIS_HOST: redis
+  REDIS_HOST: inventory-redis-dev
   REDIS_PORT: "6379"
