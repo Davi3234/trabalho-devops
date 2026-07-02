@@ -3,6 +3,10 @@ minikube start
 minikube addons enable ingress
 
 echo '-- Creating secrets'
+kubectl create secret generic redis-secret \
+  --from-literal=REDIS_PASSWORD=admin \
+  --dry-run=client -o yaml | kubectl apply -f -
+
 kubectl create secret generic grafana-secret \
   --from-literal=GF_SECURITY_ADMIN_USER=admin \
   --from-literal=GF_SECURITY_ADMIN_PASSWORD=admin \
@@ -28,6 +32,16 @@ kubectl create secret generic inventory-service-dev-secret \
   --from-literal=RABBITMQ_URL=amqp://admin:admin@rabbitmq:5672 \
   --dry-run=client -o yaml | kubectl apply -f -
 
+kubectl create secret generic payment-service-dev-secret \
+  --from-literal=POSTGRES_DB=payment \
+  --from-literal=POSTGRES_USER=postgres \
+  --from-literal=POSTGRES_PASSWORD=admin \
+  --from-literal=DB_PASSWORD=admin \
+  --from-literal=REDIS_PASSWORD=admin \
+  --from-literal=RABBITMQ_PASSWORD=admin \
+  --dry-run=client -o yaml | kubectl apply -f -
+
 echo '-- Building images'
 minikube image build -t order-service:latest ./order-service
 minikube image build -t inventory-service:latest ./inventory-service
+minikube image build -t payment-service:latest ./payment-service
